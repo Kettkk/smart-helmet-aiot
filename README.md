@@ -32,6 +32,8 @@ an experimental platform for studying that question.
 
 ## System overview
 
+![Smart Helmet AIoT system architecture](docs/architecture.png)
+
 ```mermaid
 flowchart LR
     subgraph Edge[Edge devices or local simulators]
