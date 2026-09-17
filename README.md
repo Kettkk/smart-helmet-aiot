@@ -13,7 +13,9 @@ deployment configuration.
 > **Current status:** the first credential-free local telemetry loop is ready.
 > A deterministic simulator publishes MQTT telemetry, the Spring Boot service
 > validates and stores it in MySQL, and a REST API exposes latest and historical
-> samples. Vision and client applications remain reconstruction work.
+> samples. A live Vue dashboard visualises the resulting device, physiological,
+> environmental, location, and pipeline state. Vision and mobile clients remain
+> reconstruction work.
 
 ## Research motivation
 
@@ -77,7 +79,7 @@ graduation prototype:
 | Telemetry ingestion | Huawei Cloud IoTDA integration through AMQP and device-shadow polling | Local MQTT consumer and synthetic publisher implemented |
 | Application backend | Java 17, Spring Boot 3, MyBatis, MySQL, REST endpoints | Clean Spring Boot REST API implemented |
 | Sensor state storage | Insert/update logic for per-device status records | MySQL schema and Flyway migration implemented |
-| Web client | Vue 3, Vite, Element Plus, ECharts, REST and WebSocket integration | UI migration planned |
+| Web client | Vue 3, Vite, Element Plus, ECharts, REST and WebSocket integration | Live Vue dashboard connected to the local REST API |
 | Android client | Sensor display, navigation, video/WebSocket integration | API boundary and configuration need refactoring |
 | Vision display | Browser client receives JPEG frames over WebSocket | Inference service source and benchmark path need reconstruction |
 
@@ -144,6 +146,10 @@ docker compose up --build -d
 ./scripts/smoke-test.sh
 ```
 
+Open the live dashboard at [http://localhost:3000](http://localhost:3000). It
+updates every two seconds and displays the latest measurements, a 30-sample
+trend, the observed pipeline state, synthetic coordinates, and recent records.
+
 The simulator publishes one synthetic record per second. Inspect the latest
 sample with:
 
@@ -162,6 +168,9 @@ contract, endpoints, troubleshooting, and acceptance criteria. The observed
 results from the first full local run are recorded in
 [docs/validation-report.md](docs/validation-report.md).
 
+Dashboard behavior and display thresholds are documented in
+[docs/dashboard.md](docs/dashboard.md).
+
 ## Local API
 
 | Method | Endpoint | Purpose |
@@ -178,8 +187,9 @@ results from the first full local run are recorded in
 - [x] Migrate and refactor the Spring Boot backend
 - [x] Add a portable database schema and synthetic telemetry generator
 - [ ] Add a locally reproducible vision service and fixed video sample
-- [ ] Connect the web dashboard to the local API and WebSocket endpoints
-- [x] Package the minimal telemetry pipeline with Docker Compose
+- [x] Connect the web dashboard to the local REST API
+- [x] Package the telemetry pipeline and dashboard with Docker Compose
+- [ ] Add WebSocket push updates and reconnect measurements
 - [x] Add backend integration tests and continuous integration
 - [ ] Run latency, throughput, and network-reliability experiments
 - [ ] Publish an anonymised dataset, plots, and a short technical report
@@ -207,7 +217,7 @@ the disclosure policy and [.env.example](.env.example) for safe configuration.
 ## Technology stack
 
 Java 17 · Spring Boot 3 · Spring Data JPA · Flyway · MySQL · MQTT/AMQP · Huawei Cloud IoTDA ·
-Vue 3 · Vite · Element Plus · ECharts · Android · WebSocket · YOLO-based visual
+Vue 3 · Vite · ECharts · Nginx · Android · WebSocket · YOLO-based visual
 perception
 
 ## Academic context
