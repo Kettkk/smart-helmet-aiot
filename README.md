@@ -158,7 +158,9 @@ docker compose down
 ```
 
 See [docs/local-closed-loop.md](docs/local-closed-loop.md) for the message
-contract, endpoints, troubleshooting, and acceptance criteria.
+contract, endpoints, troubleshooting, and acceptance criteria. The observed
+results from the first full local run are recorded in
+[docs/validation-report.md](docs/validation-report.md).
 
 ## Local API
 

@@ -104,3 +104,31 @@ The first loop is accepted when all of the following hold:
 
 The anonymous Mosquitto listener is for local reproducibility only. It must not
 be exposed to an untrusted network or reused for deployment.
+
+## Hybrid fallback when Java images cannot be pulled
+
+If Docker Hub times out while resolving the Maven or Eclipse Temurin images,
+run only the already downloaded infrastructure images and start the application
+processes on the host:
+
+```bash
+docker compose up -d mysql mosquitto
+
+SPRING_DATASOURCE_URL='jdbc:mysql://localhost:3306/smart_helmet?serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true' \
+SPRING_DATASOURCE_USERNAME=smart_helmet \
+SPRING_DATASOURCE_PASSWORD=local-development-only \
+MQTT_BROKER_URI=tcp://localhost:1883 \
+mvn -f backend/pom.xml spring-boot:run
+```
+
+In a second terminal, create a disposable Python environment outside the
+repository and start the simulator:
+
+```bash
+python3 -m venv /tmp/smart-helmet-simulator-venv
+/tmp/smart-helmet-simulator-venv/bin/pip install -r simulator/requirements.txt
+/tmp/smart-helmet-simulator-venv/bin/python simulator/telemetry_simulator.py
+```
+
+Run `./scripts/smoke-test.sh` from a third terminal. Stop the two host processes
+with `Ctrl+C`, then stop the infrastructure with `docker compose down`.
