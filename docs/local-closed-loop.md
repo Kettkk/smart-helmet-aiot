@@ -94,6 +94,19 @@ The first loop is accepted when all of the following hold:
 ## Troubleshooting
 
 - `Cannot connect to the Docker daemon`: launch Docker Desktop, then retry.
+- `failed to fetch anonymous token` or an `auth.docker.io` timeout: this is a
+  Docker Hub connectivity failure before project compilation starts. Pull the
+  two backend base images separately, then rerun Compose:
+
+  ```bash
+  docker pull eclipse-temurin:17-jre
+  docker pull maven:3.9.9-eclipse-temurin-17
+  docker compose up --build -d
+  ```
+
+  A successful pull is cached locally, so the following build no longer needs
+  to fetch those layers. If a pull times out, retry it after confirming Docker
+  Desktop's proxy or VPN can reach `https://auth.docker.io`.
 - Port `8080` or `1883` already in use: edit `BACKEND_PORT` or `MQTT_PORT` in
   `.env`.
 - No sample returned: inspect `docker compose ps` and then
@@ -105,7 +118,7 @@ The first loop is accepted when all of the following hold:
 The anonymous Mosquitto listener is for local reproducibility only. It must not
 be exposed to an untrusted network or reused for deployment.
 
-## Hybrid fallback when Java images cannot be pulled
+## Hybrid fallback when Java images still cannot be pulled
 
 If Docker Hub times out while resolving the Maven or Eclipse Temurin images,
 run only the already downloaded infrastructure images and start the application

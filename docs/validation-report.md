@@ -11,9 +11,10 @@ Validation date: 2026-09-17
 - MySQL 8.4 container
 - Eclipse Mosquitto 2.0 container
 
-The hybrid workflow was used because Docker Hub timed out while resolving the
-Java build images. MySQL and Mosquitto ran in containers; Spring Boot and the
-Python simulator ran on the host.
+The hybrid workflow was first used after Docker Hub timed out while resolving
+the Java build images. After separately pulling the Maven and Eclipse Temurin
+base images, the complete four-container Compose workflow was also built and
+validated successfully.
 
 ## Results
 
@@ -21,7 +22,10 @@ Python simulator ran on the host.
 |---|---|
 | Backend integration tests | 3 passed, 0 failed |
 | Compose configuration validation | Passed |
+| Backend and simulator image builds | Passed |
 | MySQL and Mosquitto health checks | Healthy |
+| Backend container health check | Healthy |
+| Four-container Compose startup | Passed |
 | Flyway migration | Version 1 applied successfully |
 | MQTT subscription | Connected to `smart-helmet/telemetry` |
 | Synthetic telemetry publication | Passed |
