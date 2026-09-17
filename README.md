@@ -10,9 +10,10 @@ and web and Android clients. This repository is the clean public version: it
 contains no production credentials, personal data, or environment-specific
 deployment configuration.
 
-> **Current status:** portfolio reconstruction in progress. The architecture and
-> implemented prototype are documented below. Source modules will be migrated
-> only after they are made reproducible, tested, and safe to publish.
+> **Current status:** the first credential-free local telemetry loop is ready.
+> A deterministic simulator publishes MQTT telemetry, the Spring Boot service
+> validates and stores it in MySQL, and a REST API exposes latest and historical
+> samples. Vision and client applications remain reconstruction work.
 
 ## Research motivation
 
@@ -73,9 +74,9 @@ graduation prototype:
 
 | Component | Verified implementation | Public reconstruction status |
 |---|---|---|
-| Telemetry ingestion | Huawei Cloud IoTDA integration through AMQP and device-shadow polling | Configuration and ingestion logic must be migrated |
-| Application backend | Java 17, Spring Boot 3, MyBatis, MySQL, REST endpoints | Clean API module planned |
-| Sensor state storage | Insert/update logic for per-device status records | Portable schema and migrations planned |
+| Telemetry ingestion | Huawei Cloud IoTDA integration through AMQP and device-shadow polling | Local MQTT consumer and synthetic publisher implemented |
+| Application backend | Java 17, Spring Boot 3, MyBatis, MySQL, REST endpoints | Clean Spring Boot REST API implemented |
+| Sensor state storage | Insert/update logic for per-device status records | MySQL schema and Flyway migration implemented |
 | Web client | Vue 3, Vite, Element Plus, ECharts, REST and WebSocket integration | UI migration planned |
 | Android client | Sensor display, navigation, video/WebSocket integration | API boundary and configuration need refactoring |
 | Vision display | Browser client receives JPEG frames over WebSocket | Inference service source and benchmark path need reconstruction |
@@ -123,35 +124,61 @@ smart-helmet-aiot/
 ├── docs/               # Architecture, decisions, limitations, and demo
 ├── experiments/        # Benchmarks, raw results, and plots
 ├── firmware/           # Optional ESP8266 and ESP32-CAM integration
+├── infrastructure/     # Local broker configuration
+├── scripts/            # Repeatable smoke-test commands
 ├── simulator/          # Hardware-independent telemetry and network simulation
-└── vision-service/     # Reproducible object-detection service
+├── vision-service/     # Reproducible object-detection service
+└── compose.yaml        # Local end-to-end environment
 ```
 
-## Reproduction target
+## Run the local closed loop
 
-The intended local workflow is:
+Prerequisites: Docker Desktop with its engine running, Docker Compose v2, and
+`curl`. No helmet hardware or cloud account is required.
 
 ```bash
 git clone https://github.com/Kettkk/smart-helmet-aiot.git
 cd smart-helmet-aiot
 cp .env.example .env
-docker compose up --build
+docker compose up --build -d
+./scripts/smoke-test.sh
 ```
 
-These commands describe the target interface and will be marked ready only
-after the Docker Compose pipeline and sample inputs are committed. Until then,
-the repository should be treated as an actively reconstructed research artifact.
+The simulator publishes one synthetic record per second. Inspect the latest
+sample with:
+
+```bash
+curl http://localhost:8080/api/v1/devices/helmet-sim-001/latest
+```
+
+Stop the services without deleting the persisted MySQL volume:
+
+```bash
+docker compose down
+```
+
+See [docs/local-closed-loop.md](docs/local-closed-loop.md) for the message
+contract, endpoints, troubleshooting, and acceptance criteria.
+
+## Local API
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| `GET` | `/actuator/health` | Service and database health |
+| `GET` | `/api/v1/devices` | Known devices and last-seen times |
+| `GET` | `/api/v1/devices/{deviceId}/latest` | Latest validated record |
+| `GET` | `/api/v1/devices/{deviceId}/telemetry?limit=100` | Newest records, maximum 500 |
 
 ## Roadmap
 
 - [x] Create a credential-free public repository and research framing
 - [x] Document the architecture, verified prototype scope, and limitations
-- [ ] Migrate and refactor the Spring Boot backend
-- [ ] Add a portable database schema and synthetic telemetry generator
+- [x] Migrate and refactor the Spring Boot backend
+- [x] Add a portable database schema and synthetic telemetry generator
 - [ ] Add a locally reproducible vision service and fixed video sample
 - [ ] Connect the web dashboard to the local API and WebSocket endpoints
-- [ ] Package the minimal pipeline with Docker Compose
-- [ ] Add automated tests and continuous integration
+- [x] Package the minimal telemetry pipeline with Docker Compose
+- [x] Add backend integration tests and continuous integration
 - [ ] Run latency, throughput, and network-reliability experiments
 - [ ] Publish an anonymised dataset, plots, and a short technical report
 
@@ -177,7 +204,7 @@ the disclosure policy and [.env.example](.env.example) for safe configuration.
 
 ## Technology stack
 
-Java 17 · Spring Boot 3 · MyBatis · MySQL · MQTT/AMQP · Huawei Cloud IoTDA ·
+Java 17 · Spring Boot 3 · Spring Data JPA · Flyway · MySQL · MQTT/AMQP · Huawei Cloud IoTDA ·
 Vue 3 · Vite · Element Plus · ECharts · Android · WebSocket · YOLO-based visual
 perception
 

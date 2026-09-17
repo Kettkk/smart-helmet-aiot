@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: smart-helmet-backend
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/smart_helmet?serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true}
+    username: ${SPRING_DATASOURCE_USERNAME:smart_helmet}
+    password: ${SPRING_DATASOURCE_PASSWORD:local-development-only}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+
+app:
+  mqtt:
+    enabled: ${MQTT_ENABLED:true}
+    broker-uri: ${MQTT_BROKER_URI:tcp://localhost:1883}
+    topic: ${MQTT_TOPIC:smart-helmet/telemetry}
+    client-id: ${MQTT_CLIENT_ID:smart-helmet-backend}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
