@@ -5,21 +5,14 @@ import { LineChart } from 'echarts/charts'
 import { GridComponent, LegendComponent, TooltipComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 import {
-  Activity,
   CheckCircle2,
   CloudCog,
   Database,
   ExternalLink,
-  Gauge,
-  HeartPulse,
-  MapPin,
   Radio,
   RefreshCw,
   ServerCog,
-  ShieldCheck,
-  Thermometer,
   Wifi,
-  Wind,
 } from '@lucide/vue'
 
 echarts.use([LineChart, GridComponent, LegendComponent, TooltipComponent, CanvasRenderer])
@@ -37,15 +30,15 @@ let chart
 let pollTimer
 
 function displayNumber(value, digits = 1) {
-  return Number.isFinite(value) ? value.toFixed(digits) : '—'
+  return Number.isFinite(value) ? value.toFixed(digits) : '--'
 }
 
-function formatTime(value, includeSeconds = true) {
-  if (!value) return '—'
+function formatTime(value) {
+  if (!value) return '--'
   return new Intl.DateTimeFormat('en-GB', {
     hour: '2-digit',
     minute: '2-digit',
-    second: includeSeconds ? '2-digit' : undefined,
+    second: '2-digit',
     hour12: false,
   }).format(new Date(value))
 }
@@ -78,44 +71,46 @@ const metricCards = computed(() => {
   return [
     {
       label: 'Heart rate',
-      value: value?.heartRateBpm ?? '—',
+      value: value?.heartRateBpm ?? '--',
       unit: 'BPM',
-      detail: value ? 'Prototype range 50–120 BPM' : 'Wearable sensor',
-      icon: HeartPulse,
-      accent: 'coral',
+      detail: value ? 'Prototype range 50-120 BPM' : 'Wearable sensor',
     },
     {
       label: 'Body temperature',
       value: displayNumber(value?.bodyTemperatureC, 2),
       unit: '°C',
       detail: value?.wearing ? 'Helmet detected' : 'Helmet not worn',
-      icon: Thermometer,
-      accent: 'amber',
     },
     {
       label: 'Ambient conditions',
       value: displayNumber(value?.ambientTemperatureC),
       unit: '°C',
       detail: value ? `${displayNumber(value.ambientHumidityPct)}% humidity` : 'Humidity unavailable',
-      icon: Wind,
-      accent: 'cyan',
     },
     {
       label: 'Movement speed',
       value: displayNumber(value?.speedMps, 2),
       unit: 'm/s',
       detail: 'Derived motion signal',
-      icon: Gauge,
-      accent: 'blue',
     },
   ]
 })
 
 const systemStages = computed(() => [
   { label: 'Simulator', detail: latest.value ? 'Publishing' : 'Waiting', icon: Radio, active: Boolean(latest.value) },
-  { label: 'MQTT stream', detail: freshnessSeconds.value !== null && freshnessSeconds.value < 10 ? 'Recent sample' : 'No recent sample', icon: Wifi, active: freshnessSeconds.value !== null && freshnessSeconds.value < 10 },
+  {
+    label: 'MQTT stream',
+    detail: freshnessSeconds.value !== null && freshnessSeconds.value < 10 ? 'Recent sample' : 'No recent sample',
+    icon: Wifi,
+    active: freshnessSeconds.value !== null && freshnessSeconds.value < 10,
+  },
   { label: 'Application API', detail: apiHealthy.value ? 'Healthy' : 'Unavailable', icon: ServerCog, active: apiHealthy.value },
-  { label: 'Telemetry store', detail: history.value.length ? `${history.value.length} samples loaded` : 'No records', icon: Database, active: history.value.length > 0 },
+  {
+    label: 'Telemetry store',
+    detail: history.value.length ? `${history.value.length} samples loaded` : 'No records',
+    icon: Database,
+    active: history.value.length > 0,
+  },
 ])
 
 const mapUrl = computed(() => {
@@ -133,23 +128,34 @@ function renderChart() {
   if (!trendChart.value || !history.value.length) return
   if (!chart) chart = echarts.init(trendChart.value, null, { renderer: 'canvas' })
   const records = [...history.value].reverse()
+  const styles = getComputedStyle(document.documentElement)
+  const chartColors = [
+    styles.getPropertyValue('--accent').trim(),
+    styles.getPropertyValue('--chart-secondary').trim(),
+    styles.getPropertyValue('--chart-tertiary').trim(),
+  ]
+  const textMuted = styles.getPropertyValue('--text-muted').trim()
+  const textPrimary = styles.getPropertyValue('--text-primary').trim()
+  const borderColor = styles.getPropertyValue('--border').trim()
+  const surface = styles.getPropertyValue('--surface').trim()
   chart.setOption({
-    animationDuration: 500,
+    animationDuration: 220,
     backgroundColor: 'transparent',
-    color: ['#ff7b73', '#f4bd61', '#55d7e8'],
-    textStyle: { color: '#87a0b5', fontFamily: 'Avenir Next, Segoe UI, sans-serif' },
+    color: chartColors,
+    textStyle: { color: textMuted, fontFamily: '-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif' },
     tooltip: {
       trigger: 'axis',
-      backgroundColor: '#102033',
-      borderColor: 'rgba(155,185,210,.24)',
-      textStyle: { color: '#e8f0f8', fontSize: 11 },
+      backgroundColor: surface,
+      borderColor,
+      extraCssText: 'box-shadow: none; border-radius: 6px;',
+      textStyle: { color: textPrimary, fontSize: 11 },
     },
     legend: {
       right: 0,
       top: 0,
       itemWidth: 10,
       itemHeight: 3,
-      textStyle: { color: '#87a0b5', fontSize: 10 },
+      textStyle: { color: textMuted, fontSize: 10 },
       data: ['Heart rate', 'Body temp.', 'Ambient temp.'],
     },
     grid: { left: 10, right: 12, top: 44, bottom: 8, containLabel: true },
@@ -157,9 +163,9 @@ function renderChart() {
       type: 'category',
       boundaryGap: false,
       data: records.map((record) => formatTime(record.timestamp)),
-      axisLine: { lineStyle: { color: 'rgba(155,185,210,.16)' } },
+      axisLine: { lineStyle: { color: borderColor } },
       axisTick: { show: false },
-      axisLabel: { color: '#688298', fontSize: 9, interval: Math.max(0, Math.floor(records.length / 6)) },
+      axisLabel: { color: textMuted, fontSize: 9, interval: Math.max(0, Math.floor(records.length / 6)) },
     },
     yAxis: [
       {
@@ -167,33 +173,32 @@ function renderChart() {
         name: 'BPM',
         min: (value) => Math.floor(value.min - 4),
         max: (value) => Math.ceil(value.max + 4),
-        splitLine: { lineStyle: { color: 'rgba(155,185,210,.08)' } },
-        axisLabel: { color: '#688298', fontSize: 9 },
-        nameTextStyle: { color: '#688298', fontSize: 9 },
+        splitLine: { lineStyle: { color: borderColor } },
+        axisLabel: { color: textMuted, fontSize: 9 },
+        nameTextStyle: { color: textMuted, fontSize: 9 },
       },
       {
         type: 'value',
         name: '°C',
         splitLine: { show: false },
-        axisLabel: { color: '#688298', fontSize: 9 },
-        nameTextStyle: { color: '#688298', fontSize: 9 },
+        axisLabel: { color: textMuted, fontSize: 9 },
+        nameTextStyle: { color: textMuted, fontSize: 9 },
       },
     ],
     series: [
       {
         name: 'Heart rate',
         type: 'line',
-        smooth: 0.35,
+        smooth: 0.2,
         symbol: 'none',
         lineStyle: { width: 2 },
-        areaStyle: { opacity: 0.06 },
         data: records.map((record) => record.heartRateBpm),
       },
       {
         name: 'Body temp.',
         type: 'line',
         yAxisIndex: 1,
-        smooth: 0.35,
+        smooth: 0.2,
         symbol: 'none',
         lineStyle: { width: 1.5 },
         data: records.map((record) => record.bodyTemperatureC),
@@ -202,7 +207,7 @@ function renderChart() {
         name: 'Ambient temp.',
         type: 'line',
         yAxisIndex: 1,
-        smooth: 0.35,
+        smooth: 0.2,
         symbol: 'none',
         lineStyle: { width: 1.5 },
         data: records.map((record) => record.ambientTemperatureC),
@@ -235,7 +240,7 @@ async function refresh() {
     }
     error.value = ''
     lastRefresh.value = new Date()
-  } catch (requestError) {
+  } catch {
     apiHealthy.value = false
     error.value = 'Live services are unavailable. Start the local Compose stack and retry.'
   } finally {
@@ -270,8 +275,8 @@ onBeforeUnmount(() => {
   <main class="dashboard-shell">
     <header class="topbar">
       <a class="brand" href="#overview" aria-label="HELM telemetry overview">
-        <span class="brand-mark"><Activity :size="20" /></span>
-        <span><strong>HELM</strong><small>FIELD TELEMETRY</small></span>
+        <span class="brand-mark" aria-hidden="true">H</span>
+        <span><strong>HELM</strong><small>Research telemetry</small></span>
       </a>
 
       <div class="topbar-actions">
@@ -288,17 +293,16 @@ onBeforeUnmount(() => {
       </div>
     </header>
 
-    <section id="overview" class="hero-row">
+    <section id="overview" class="page-heading">
       <div>
-        <p class="eyebrow">SMART HELMET / LIVE OPERATIONS</p>
-        <h1>Field telemetry overview</h1>
-        <p class="lede">A real-time view of synthetic wearable, environmental, and location signals.</p>
+        <h1>Telemetry overview</h1>
+        <p class="lede">Live wearable, environmental, and location signals from the local research prototype.</p>
       </div>
-      <div class="stream-pill" :class="`is-${streamStatus.tone}`">
-        <span class="pulse-dot"></span>
+      <div class="stream-state" :class="`is-${streamStatus.tone}`">
+        <span class="status-dot" aria-hidden="true"></span>
         <div>
           <strong>{{ streamStatus.label }}</strong>
-          <small v-if="lastRefresh">Updated {{ lastRefresh.toLocaleTimeString() }}</small>
+          <small v-if="lastRefresh">Updated at {{ lastRefresh.toLocaleTimeString() }}</small>
           <small v-else>Connecting to local services</small>
         </div>
       </div>
@@ -310,29 +314,28 @@ onBeforeUnmount(() => {
       <button type="button" @click="refresh">Retry</button>
     </section>
 
-    <section class="metric-grid" aria-label="Latest telemetry">
-      <article v-for="metric in metricCards" :key="metric.label" class="metric-card" :class="`accent-${metric.accent}`">
-        <div class="metric-icon"><component :is="metric.icon" :size="21" /></div>
-        <div class="metric-heading"><span>{{ metric.label }}</span><Radio v-if="latest" :size="14" /></div>
-        <div class="metric-value"><strong>{{ metric.value }}</strong><span>{{ metric.unit }}</span></div>
+    <section class="metric-grid" aria-label="Latest telemetry readings">
+      <article v-for="metric in metricCards" :key="metric.label" class="metric-item">
+        <div class="metric-heading">{{ metric.label }}</div>
+        <div v-if="loading && !latest" class="metric-skeleton" aria-label="Loading reading"></div>
+        <div v-else class="metric-value"><strong>{{ metric.value }}</strong><span>{{ metric.unit }}</span></div>
         <p>{{ metric.detail }}</p>
       </article>
     </section>
 
-    <section class="analysis-grid">
+    <section class="workspace-grid">
       <article class="panel trend-panel">
         <div class="panel-heading">
-          <div><p class="eyebrow">LAST 30 SAMPLES</p><h2>Physiology &amp; environment</h2></div>
-          <Activity :size="22" />
+          <div><h2>Signal trends</h2><p>Last 30 samples</p></div>
         </div>
         <div v-if="history.length" ref="trendChart" class="trend-chart" role="img" aria-label="Heart rate and temperature trend chart"></div>
-        <div v-else class="empty-state">Waiting for telemetry history</div>
+        <div v-else-if="loading" class="chart-skeleton" aria-label="Loading chart"></div>
+        <div v-else class="empty-state">No telemetry history is available for this device.</div>
       </article>
 
       <article class="panel status-panel">
         <div class="panel-heading">
-          <div><p class="eyebrow">OBSERVED PATH</p><h2>System integrity</h2></div>
-          <ShieldCheck :size="22" />
+          <div><h2>System path</h2><p>Observed local data flow</p></div>
         </div>
         <div class="stage-list">
           <div v-for="stage in systemStages" :key="stage.label" class="stage-row">
@@ -348,26 +351,10 @@ onBeforeUnmount(() => {
       </article>
     </section>
 
-    <section class="lower-grid">
-      <article class="panel position-panel">
-        <div class="panel-heading">
-          <div><p class="eyebrow">LAST KNOWN POSITION</p><h2>Location fix</h2></div>
-          <MapPin :size="22" />
-        </div>
-        <div class="coordinates">
-          <div><span>LATITUDE</span><strong>{{ displayNumber(latest?.latitude, 6) }}</strong></div>
-          <div><span>LONGITUDE</span><strong>{{ displayNumber(latest?.longitude, 6) }}</strong></div>
-          <div><span>PRESSURE</span><strong>{{ displayNumber(latest?.impactPressurePa, 2) }} Pa</strong></div>
-        </div>
-        <a v-if="latest" class="map-link" :href="mapUrl" target="_blank" rel="noreferrer">
-          Inspect coordinate <ExternalLink :size="13" />
-        </a>
-        <p class="position-note">Synthetic coordinates · no personal location data</p>
-      </article>
-
+    <section class="detail-grid">
       <article class="panel records-panel">
         <div class="panel-heading records-heading">
-          <div><p class="eyebrow">RECENT RECORDS</p><h2>Telemetry log</h2></div>
+          <div><h2>Telemetry log</h2><p>Most recent readings</p></div>
           <span>{{ history.length }} samples</span>
         </div>
         <div class="table-scroll">
@@ -387,10 +374,25 @@ onBeforeUnmount(() => {
           </table>
         </div>
       </article>
+
+      <article class="panel position-panel">
+        <div class="panel-heading">
+          <div><h2>Location fix</h2><p>Last reported position</p></div>
+        </div>
+        <dl class="coordinates">
+          <div><dt>Latitude</dt><dd>{{ displayNumber(latest?.latitude, 6) }}</dd></div>
+          <div><dt>Longitude</dt><dd>{{ displayNumber(latest?.longitude, 6) }}</dd></div>
+          <div><dt>Impact pressure</dt><dd>{{ displayNumber(latest?.impactPressurePa, 2) }} Pa</dd></div>
+        </dl>
+        <a v-if="latest" class="map-link" :href="mapUrl" target="_blank" rel="noreferrer">
+          Open coordinate <ExternalLink :size="13" />
+        </a>
+        <p class="position-note">Synthetic coordinates. No personal location data.</p>
+      </article>
     </section>
 
     <footer>
-      <span>SMART HELMET AIoT / LOCAL RESEARCH PROTOTYPE</span>
+      <span>Smart Helmet AIoT local research prototype</span>
       <span>Not a certified medical or safety device</span>
     </footer>
   </main>
