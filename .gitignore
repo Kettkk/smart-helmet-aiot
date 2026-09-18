@@ -29,3 +29,8 @@
 # Runtime data and logs
 *.log
 data/private/
+data/samples/outdoor-hiking-20s.mp4
+
+# Generated vision artifacts and downloaded weights
+experiments/results/**/annotated.mp4
+*.pt

@@ -1,0 +1,5 @@
+frame_stride,effective_sampling_fps,processed_frames,mean_inference_latency_ms,p50_inference_latency_ms,p95_inference_latency_ms,inference_fps,pipeline_fps,sampled_frames_with_detections,sampled_frame_detection_rate,person_detections
+1,30.0,600,105.726,104.948,111.703,9.458,8.721,600,1.0,619
+2,15.0,300,108.565,107.062,114.772,9.211,15.781,300,1.0,310
+5,6.0,120,105.57,104.973,108.214,9.472,33.508,120,1.0,123
+10,3.0,60,107.518,107.226,110.87,9.301,51.498,60,1.0,62

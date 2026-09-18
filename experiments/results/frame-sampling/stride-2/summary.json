@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-09-18T09:06:08.043276+00:00",
+  "input": {
+    "file": "outdoor-hiking-20s.mp4",
+    "width": 1280,
+    "height": 720,
+    "fps": 30.0,
+    "declared_frames": 600,
+    "decoded_frames": 600,
+    "duration_s": 20.0
+  },
+  "configuration": {
+    "model": "yolo11n.pt",
+    "device": "cpu",
+    "image_size": 640,
+    "confidence": 0.25,
+    "target_classes": [
+      "person"
+    ],
+    "frame_stride": 2,
+    "warmup_runs": 1,
+    "effective_sampling_fps": 15.0
+  },
+  "performance": {
+    "processed_frames": 300,
+    "processing_wall_time_s": 38.02,
+    "pipeline_fps": 15.781,
+    "inference_fps": 9.211,
+    "mean_inference_latency_ms": 108.565,
+    "p50_inference_latency_ms": 107.062,
+    "p95_inference_latency_ms": 114.772
+  },
+  "detections": {
+    "sampled_frames_with_detections": 300,
+    "sampled_frame_detection_rate": 1.0,
+    "count_by_class": {
+      "person": 310
+    }
+  },
+  "artifacts": {
+    "annotated_video": "annotated.mp4",
+    "annotated_video_codec": "h264",
+    "detections_jsonl": "detections.jsonl",
+    "frame_metrics_csv": "frame-metrics.csv"
+  }
+}

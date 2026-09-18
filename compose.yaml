@@ -80,6 +80,16 @@ services:
       retries: 10
       start_period: 10s
 
+  vision-service:
+    profiles: ["vision"]
+    build: ./vision-service
+    volumes:
+      - ./vision-service/app:/app/app:ro
+      - ./data/samples:/workspace/data/samples:ro
+      - ./experiments:/workspace/experiments
+      - vision-models:/models
+
 volumes:
   mysql-data:
   mosquitto-data:
+  vision-models:

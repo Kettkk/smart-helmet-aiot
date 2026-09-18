@@ -1,0 +1,10 @@
+-r requirements-core.txt
+opencv-python==5.0.0.93
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.8.0+cpu; sys_platform == "linux" and platform_machine == "x86_64"
+torchvision==0.23.0+cpu; sys_platform == "linux" and platform_machine == "x86_64"
+torch==2.8.0; sys_platform == "linux" and platform_machine == "aarch64"
+torchvision==0.23.0; sys_platform == "linux" and platform_machine == "aarch64"
+torch==2.8.0; sys_platform == "darwin"
+torchvision==0.23.0; sys_platform == "darwin"
+ultralytics==8.4.155

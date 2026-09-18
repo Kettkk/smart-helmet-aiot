@@ -10,12 +10,13 @@ and web and Android clients. This repository is the clean public version: it
 contains no production credentials, personal data, or environment-specific
 deployment configuration.
 
-> **Current status:** the first credential-free local telemetry loop is ready.
+> **Current status:** the credential-free telemetry and fixed-video loops are ready.
 > A deterministic simulator publishes MQTT telemetry, the Spring Boot service
 > validates and stores it in MySQL, and a REST API exposes latest and historical
-> samples. A live Vue dashboard visualises the resulting device, physiological,
-> environmental, location, and pipeline state. Vision and mobile clients remain
-> reconstruction work.
+> samples. A live Vue dashboard visualises the resulting state. A reproducible
+> YOLO batch pipeline now processes a licensed 20-second hiking sample and emits
+> an annotated video, structured detections, and latency/FPS measurements. The
+> mobile client remains reconstruction work.
 
 ## Research motivation
 
@@ -81,7 +82,7 @@ graduation prototype:
 | Sensor state storage | Insert/update logic for per-device status records | MySQL schema and Flyway migration implemented |
 | Web client | Vue 3, Vite, Element Plus, ECharts, REST and WebSocket integration | Live Vue dashboard connected to the local REST API |
 | Android client | Sensor display, navigation, video/WebSocket integration | API boundary and configuration need refactoring |
-| Vision display | Browser client receives JPEG frames over WebSocket | Inference service source and benchmark path need reconstruction |
+| Vision display | Browser client receives JPEG frames over WebSocket | Fixed-video YOLO inference and benchmark artifacts implemented |
 
 The prototype data model includes helmet-wear status, body and ambient
 temperature, ambient humidity, heart rate, location, blood pressure, impact or
@@ -111,9 +112,24 @@ feature demonstrations.
 | Network robustness | added delay, packet loss, disconnection duration | delivery rate, reconnect time, missing samples |
 | Accuracy–latency trade-off | inference frequency and model size | detection metric, FPS, end-to-end latency |
 
-Every published figure will be accompanied by its experiment configuration,
-raw anonymised results, and plotting script. No numerical claims will be added
-until the corresponding experiment can be reproduced from this repository.
+Every published figure is accompanied by its experiment configuration, raw
+anonymised results, and plotting script.
+
+### Measured frame-sampling result
+
+The fixed 20-second video was evaluated with strides 1, 2, 5, and 10 in the
+same CPU-only Docker environment. Per-inference latency remained near 106–109
+ms, while reducing inference frequency increased whole-pipeline throughput.
+Stride 5 was the highest tested sampling frequency that processed the 30 fps
+source faster than real time on the measured machine.
+
+![Frame-sampling latency and throughput comparison](experiments/plots/vision/frame-sampling-comparison.png)
+
+![Stride-5 inference latency over time](experiments/plots/vision/latency-over-time.png)
+
+These are system measurements on one unlabelled clip, not model-accuracy
+claims. See [docs/vision-demo.md](docs/vision-demo.md) for all four figures,
+the experiment environment, limitations, and links to raw results.
 
 ## Repository structure
 
@@ -171,6 +187,25 @@ results from the first full local run are recorded in
 Dashboard behavior and display thresholds are documented in
 [docs/dashboard.md](docs/dashboard.md).
 
+Run the fixed-video detection path independently:
+
+```bash
+./scripts/run-vision-demo.sh
+```
+
+Run the controlled frame-sampling benchmark and regenerate its figures:
+
+```bash
+./scripts/run-vision-benchmark.sh
+./scripts/plot-vision-results.sh
+```
+
+It writes an annotated video, frame-level JSONL/CSV records, and a measured
+summary to `experiments/results/vision-demo/`. See
+[vision-service/README.md](vision-service/README.md) for the command and
+[docs/vision-demo.md](docs/vision-demo.md) for the measured baseline and its
+interpretation.
+
 ## Local API
 
 | Method | Endpoint | Purpose |
@@ -186,7 +221,7 @@ Dashboard behavior and display thresholds are documented in
 - [x] Document the architecture, verified prototype scope, and limitations
 - [x] Migrate and refactor the Spring Boot backend
 - [x] Add a portable database schema and synthetic telemetry generator
-- [ ] Add a locally reproducible vision service and fixed video sample
+- [x] Add a locally reproducible vision service and fixed video sample
 - [x] Connect the web dashboard to the local REST API
 - [x] Package the telemetry pipeline and dashboard with Docker Compose
 - [ ] Add WebSocket push updates and reconnect measurements
@@ -202,8 +237,9 @@ Dashboard behavior and display thresholds are documented in
   be replaced with runtime configuration during migration.
 - The original Android prototype accesses application data too directly; the
   reconstruction will place a documented API between clients and storage.
-- The vision pipeline needs a versioned model, evaluation dataset, and benchmark
-  script before detection-performance claims can be reported.
+- The vision sample has no ground-truth labels. It supports system-performance
+  measurements and qualitative inspection, but not precision, recall, or mAP
+  claims; a versioned evaluation dataset is still required for those metrics.
 - This is a research prototype, not a certified medical or personal-safety
   device.
 
