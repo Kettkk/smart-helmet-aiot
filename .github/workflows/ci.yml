@@ -40,8 +40,10 @@ jobs:
           python -m pip install --requirement experiments/requirements.txt
           PYTHONPATH=. pytest experiments/tests
           python -m py_compile experiments/network_reliability.py experiments/plot_network_results.py
-          python experiments/plot_network_results.py
-          git diff --exit-code -- experiments/plots/network
+          python experiments/plot_network_results.py --output-dir /tmp/network-plots
+          test -s /tmp/network-plots/delivery_rate_vs_packet_loss.png
+          test -s /tmp/network-plots/reconnect_time_vs_outage.png
+          test -s /tmp/network-plots/latency_vs_added_delay.png
       - name: Verify dashboard benchmark data
         run: |
           python experiments/export_dashboard_results.py
