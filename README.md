@@ -2,6 +2,15 @@
 
 **A reproducible edge-to-cloud prototype for outdoor safety monitoring and visual perception.**
 
+## System demo
+
+[![Smart Helmet AIoT end-to-end demo](docs/demo.gif)](docs/demo.mp4)
+
+The 39-second demo shows live simulated telemetry flowing through the local
+MQTT, Spring Boot, MySQL, and Vue stack; the measured frame-sampling benchmark;
+and YOLO inference on a fixed outdoor video. Select the image to open the
+higher-quality MP4 version.
+
 This portfolio project reconstructs my undergraduate capstone, *Design of an
 Outdoor Information Monitoring and Recognition System Based on a Smart Helmet*,
 as a research-oriented and reproducible system. The original prototype combined
