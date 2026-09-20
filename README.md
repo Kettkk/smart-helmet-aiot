@@ -3,11 +3,11 @@
 **A reproducible edge-to-cloud prototype for outdoor safety monitoring and visual perception.**
 
 [Project homepage](https://kettkk.github.io/smart-helmet-aiot/) ·
-[Technical report (PDF)](output/pdf/smart-helmet-aiot-technical-report.pdf) ·
+[Technical report v1.1 (PDF)](output/pdf/smart-helmet-aiot-technical-report-v1.1.pdf) ·
 [Report source](docs/technical-report.md) ·
 [Reproducibility guide](docs/local-closed-loop.md)
 
-## 30-second research summary
+## Summary
 
 **Research question.** How do frame-sampling frequency and network conditions
 affect latency, throughput, reliability, and detection continuity in a
@@ -32,7 +32,7 @@ experiments; and documented the contribution boundary. The upstream STM32
 sensor firmware was developed by another contributor.
 
 **Review paths.** [Watch the demo](#system-demo) ·
-[Read the report](output/pdf/smart-helmet-aiot-technical-report.pdf) ·
+[Read the report](output/pdf/smart-helmet-aiot-technical-report-v1.1.pdf) ·
 [Reproduce the closed loop](#run-the-local-closed-loop)
 
 ## System demo

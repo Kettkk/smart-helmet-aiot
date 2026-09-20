@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the four-page English technical report as a publication-ready PDF."""
+"""Build the version 1.1 English technical report as a publication-ready PDF."""
 
 from pathlib import Path
 from textwrap import wrap
@@ -16,7 +16,7 @@ from reportlab.pdfgen.canvas import Canvas
 
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT / "output" / "pdf" / "smart-helmet-aiot-technical-report.pdf"
+OUTPUT = ROOT / "output" / "pdf" / "smart-helmet-aiot-technical-report-v1.1.pdf"
 ARCH = ROOT / "docs" / "architecture.png"
 VISION = ROOT / "experiments" / "plots" / "vision" / "frame-sampling-comparison.png"
 DELIVERY = ROOT / "experiments" / "plots" / "network" / "delivery_rate_vs_packet_loss.png"
@@ -145,7 +145,7 @@ def page_one(canvas: Canvas):
     y = PAGE_H - 28 * mm
     canvas.setFillColor(ACCENT)
     canvas.setFont(BOLD, 8)
-    canvas.drawString(MARGIN, y, "TECHNICAL REPORT  |  VERSION 1.0.0  |  SEPTEMBER 2026")
+    canvas.drawString(MARGIN, y, "TECHNICAL REPORT  |  VERSION 1.1  |  SEPTEMBER 2026")
     y -= 10 * mm
     canvas.setFillColor(INK)
     canvas.setFont(BOLD, 25)
@@ -154,7 +154,13 @@ def page_one(canvas: Canvas):
     canvas.setFont(FONT, 15)
     canvas.setFillColor(MUTED)
     canvas.drawString(MARGIN, y, "A Reproducible Edge-to-Cloud Safety Monitoring System")
-    y -= 12 * mm
+    y -= 8 * mm
+    canvas.setFont(FONT, 8.3)
+    canvas.drawString(MARGIN, y, "Tuoke Ke  |  ketk0917@163.com  |  github.com/Kettkk")
+    y -= 4.8 * mm
+    canvas.setFont(FONT, 7.4)
+    canvas.drawString(MARGIN, y, "Evidence baseline: v1.0.0 release, commit 716644f. Version 1.1 adds reporting context only.")
+    y -= 7.2 * mm
     y = section_title(canvas, "Abstract", y)
     abstract = (
         "This report presents a reproducible research prototype for studying an edge-to-cloud monitoring pipeline derived from a physical smart-helmet project. "
@@ -354,13 +360,38 @@ def page_four(canvas: Canvas):
     )
 
 
+def page_five(canvas: Canvas):
+    header(canvas, 5, "Validity and references")
+    y = PAGE_H - 25 * mm
+    y = title(canvas, "Threats to validity and references", y)
+    y = section_title(canvas, "Internal validity", y)
+    y = draw_para(canvas, "The benchmark runner fixes the video, model, image size, threshold, frame strides, random seed, and message counts. This supports repeatability, but a fixed clip and one CPU path cannot remove implementation- or machine-specific effects. Versioned JSONL, CSV, plots, and configurations make each reported value inspectable.", MARGIN, y, TEXT_W)
+    y -= 2 * mm
+    y = section_title(canvas, "Construct validity", y)
+    y = draw_para(canvas, "Sampled-frame continuity means that a sampled frame contains at least one person detection. It is not precision, recall, mAP, or a safety outcome because the clip has no human-annotated ground truth. Seeded application-level loss measures attempted-message delivery, not radio-layer packet loss. The report uses these restricted names throughout.", MARGIN, y, TEXT_W)
+    y -= 2 * mm
+    y = section_title(canvas, "External and conclusion validity", y)
+    y = draw_para(canvas, "One 20-second hiking clip, one local Docker host, and simulator-driven telemetry do not represent all lighting, motion, hardware, wireless conditions, or deployment durations. Network settings have three repeats and the vision study is a deterministic fixed-input comparison, not a confidence-interval study. The results support directional trade-offs only in this prototype setting.", MARGIN, y, TEXT_W)
+    y -= 3 * mm
+    y = section_title(canvas, "Research artifact", y)
+    y = draw_para(canvas, "Reported measurements are pinned to Smart Helmet AIoT release v1.0.0, commit 716644f (https://github.com/Kettkk/smart-helmet-aiot/releases/tag/v1.0.0). This v1.1 report updates author, artifact, validity, and reference context without changing the experimental baseline.", MARGIN, y, TEXT_W)
+    y -= 4 * mm
+    y = section_title(canvas, "References", y)
+    references = [
+        "1. OASIS. MQTT Version 5.0. OASIS Standard, 2019. https://docs.oasis-open.org/mqtt/mqtt/v5.0/mqtt-v5.0.html",
+        "2. Jocher, G., and Qiu, J. Ultralytics YOLO11. Software documentation, 2024. https://docs.ultralytics.com/models/yolo11/",
+        "3. Kettkk. Smart Helmet AIoT v1.0.0. GitHub release and versioned experiment artifact, 2026. https://github.com/Kettkk/smart-helmet-aiot/releases/tag/v1.0.0",
+    ]
+    draw_bullets(canvas, references, MARGIN, y, TEXT_W, para_style(8.2, 11, INK))
+
+
 def build():
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     canvas = Canvas(str(OUTPUT), pagesize=A4, pageCompression=1)
     canvas.setTitle("Smart Helmet AIoT: A Reproducible Edge-to-Cloud Safety Monitoring System")
-    canvas.setAuthor("Kettkk")
-    canvas.setSubject("Technical report for the Smart Helmet AIoT research prototype")
-    for renderer in (page_one, page_two, page_three, page_four):
+    canvas.setAuthor("Tuoke Ke")
+    canvas.setSubject("Version 1.1 technical report for the Smart Helmet AIoT research prototype")
+    for renderer in (page_one, page_two, page_three, page_four, page_five):
         renderer(canvas)
         canvas.showPage()
     canvas.save()

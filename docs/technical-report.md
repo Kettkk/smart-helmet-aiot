@@ -2,8 +2,12 @@
 
 ## A Reproducible Edge-to-Cloud Safety Monitoring System
 
-**Technical report, version 1.0.0**  
+**Technical report, version 1.1**<br>
 **September 2026**
+
+**Author:** Tuoke Ke<br>
+**Contact:** ketk0917@163.com | [github.com/Kettkk](https://github.com/Kettkk)<br>
+**Research artifact:** [release v1.0.0](https://github.com/Kettkk/smart-helmet-aiot/releases/tag/v1.0.0), commit [`716644f`](https://github.com/Kettkk/smart-helmet-aiot/commit/716644fe3c1a0a9a2f04d10ef4b6d237b1ae2145). The reported measurements are pinned to this release baseline; version 1.1 adds reporting context and does not alter the experiments.
 
 ## Abstract
 
@@ -145,11 +149,21 @@ After the broker became available, mean subscription recovery time remained betw
 - The Android client is retained as historical project context and is not part of the current Docker validation path.
 - The prototype has not undergone long-duration outdoor deployment, medical validation, or safety certification.
 
-## 7. Future Evaluation
+## 7. Threats to Validity
+
+**Internal validity.** The benchmark runner fixes the video, model, image size, threshold, frame strides, random seed, and message counts. This supports repeatability, but a fixed clip and one CPU path cannot eliminate implementation- or machine-specific effects. The raw JSONL and CSV outputs, plotting scripts, and configurations are versioned so that each derived figure can be inspected.
+
+**Construct validity.** Sampled-frame continuity measures whether the detector returned at least one `person` detection on a sampled frame. It is not precision, recall, mAP, or a safety outcome because the clip has no human-annotated ground truth. Application-level seeded loss intentionally measures attempted-message delivery rather than radio-layer packet loss. The report uses those names consistently to avoid stronger claims.
+
+**External validity.** The one 20-second hiking clip, local Docker host, and simulator-driven telemetry do not represent all outdoor lighting, motion, device hardware, wireless conditions, or deployment durations. The physical ESP32-CAM and ESP8266 prototype provides provenance, but it is not required by the public experiments. Future field studies should repeat the tests across labeled clips, devices, networks, and durations.
+
+**Conclusion validity.** Network conditions have three repeats per setting and the vision study reports deterministic fixed-input comparisons, not confidence intervals. The results support directional system trade-offs in this setup only. Longer runs, confidence intervals, independent hardware, and `tc netem` validation are planned before generalizing beyond the prototype.
+
+## 8. Future Evaluation
 
 Future work remains within the defined systems scope: longer repeated runs, confidence intervals, Linux `tc netem` validation, controlled tests on the physical ESP devices, and adaptive sampling policies evaluated only against latency, throughput, continuity, and reliability. Ground-truth accuracy evaluation would require a separately labeled dataset and a revised research protocol.
 
-## 8. Reproducibility
+## 9. Reproducibility
 
 ```bash
 git clone https://github.com/Kettkk/smart-helmet-aiot.git
@@ -170,3 +184,9 @@ Regenerate the PDF report with:
 python -m pip install --requirement scripts/requirements-report.txt
 python scripts/build-technical-report.py
 ```
+
+## 10. References
+
+1. OASIS. *MQTT Version 5.0*. OASIS Standard, 2019. https://docs.oasis-open.org/mqtt/mqtt/v5.0/mqtt-v5.0.html
+2. Jocher, G., and Qiu, J. *Ultralytics YOLO11*. Software documentation, 2024. https://docs.ultralytics.com/models/yolo11/
+3. Kettkk. *Smart Helmet AIoT v1.0.0*. GitHub release and versioned experiment artifact, 2026. https://github.com/Kettkk/smart-helmet-aiot/releases/tag/v1.0.0

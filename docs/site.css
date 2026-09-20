@@ -238,6 +238,23 @@ h3 { font-size: 22px; }
 }
 .flow code { display: block; margin-top: 36px; color: var(--accent-hover); font-size: 13px; }
 
+.dashboard-section { border-block: 1px solid var(--border); background: var(--subtle); }
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: 0.78fr 1.22fr;
+  gap: clamp(40px, 7vw, 92px);
+  align-items: center;
+}
+.dashboard-copy > p, .author-section > div > p { max-width: 52ch; margin: 15px 0 0; color: var(--muted); }
+.dashboard-list, .author-list { margin: 28px 0 22px; }
+.dashboard-list > div, .author-list > div { padding: 15px 0; border-bottom: 1px solid var(--border); }
+.dashboard-list > div:first-child, .author-list > div:first-child { padding-top: 0; }
+.dashboard-list dt, .author-list dt { font-weight: 650; }
+.dashboard-list dd, .author-list dd { margin: 3px 0 0; color: var(--muted); }
+.author-list a { color: var(--accent); text-underline-offset: 3px; }
+.dashboard-figure { margin: 0; }
+.dashboard-figure img { border: 1px solid var(--border); border-radius: var(--radius); background: var(--canvas); }
+
 .evidence-section { border-block: 1px solid var(--border); background: var(--subtle); }
 
 .evidence-grid {
@@ -288,6 +305,14 @@ h3 { font-size: 22px; }
 .scope-list dt { margin-bottom: 4px; font-weight: 650; }
 .scope-list dd { margin: 0; color: var(--muted); }
 
+.author-section {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: clamp(40px, 8vw, 110px);
+  align-items: start;
+}
+.author-list { margin: 0; }
+
 .reproduce-section { background: #f0f7ff; border-top: 1px solid #b6d7fe; }
 .reproduce-layout {
   display: grid;
@@ -335,8 +360,8 @@ pre {
   .metrics > div:nth-child(odd) { border-left: 1px solid var(--border); }
   .metrics > div:nth-child(even) { border-right: 1px solid var(--border); }
   .metrics > div:nth-child(-n + 2) { border-bottom: 1px solid var(--border); }
-  .flow-grid, .evidence-grid, .hardware-section, .scope-section, .reproduce-layout { grid-template-columns: 1fr; }
-  .hardware-section, .scope-section, .reproduce-layout { gap: 42px; }
+  .flow-grid, .dashboard-layout, .evidence-grid, .hardware-section, .scope-section, .author-section, .reproduce-layout { grid-template-columns: 1fr; }
+  .dashboard-layout, .hardware-section, .scope-section, .author-section, .reproduce-layout { gap: 42px; }
 }
 
 @media (max-width: 540px) {

@@ -21,6 +21,7 @@
         </a>
         <div class="nav-links">
           <a href="#system">System</a>
+          <a href="#dashboard">Dashboard</a>
           <a href="#evidence">Evidence</a>
           <a href="#hardware">Hardware</a>
           <a href="#reproduce">Reproduce</a>
@@ -36,7 +37,7 @@
           <h1>Measure the system, not just the model.</h1>
           <p class="hero-summary">A smart-helmet testbed for latency, throughput, detection continuity, and network reliability.</p>
           <div class="hero-actions">
-            <a class="button" href="https://github.com/Kettkk/smart-helmet-aiot/blob/main/output/pdf/smart-helmet-aiot-technical-report.pdf">Read technical report</a>
+            <a class="button" href="https://github.com/Kettkk/smart-helmet-aiot/blob/main/output/pdf/smart-helmet-aiot-technical-report-v1.1.pdf">Read technical report</a>
             <a class="text-link" href="https://github.com/Kettkk/smart-helmet-aiot#run-the-local-closed-loop">Run locally <span aria-hidden="true">→</span></a>
           </div>
         </div>
@@ -71,6 +72,25 @@
             <p>A SHA-256 verified clip runs through YOLO11n, publishes its benchmark, and appears in the same dashboard.</p>
             <code>video → inference → POST → MySQL → dashboard</code>
           </article>
+        </div>
+      </section>
+
+      <section class="section dashboard-section" id="dashboard">
+        <div class="shell dashboard-layout">
+          <div class="dashboard-copy">
+            <h2>One dashboard for the observable system state</h2>
+            <p>The Vue dashboard presents the local telemetry loop and the persisted vision benchmark through the same backend API. The screenshot uses simulator-generated readings and contains no personal location data.</p>
+            <dl class="dashboard-list">
+              <div><dt>Telemetry</dt><dd>Latest wearable and environmental readings from the MQTT pipeline.</dd></div>
+              <div><dt>System path</dt><dd>Inspectable health of the simulator, broker, API, database, and vision-results endpoint.</dd></div>
+              <div><dt>Vision evidence</dt><dd>Selected stride, latency, throughput, and the stored benchmark record.</dd></div>
+            </dl>
+            <a class="text-link" href="https://github.com/Kettkk/smart-helmet-aiot/blob/main/docs/dashboard.md">Inspect the dashboard interface <span aria-hidden="true">→</span></a>
+          </div>
+          <figure class="dashboard-figure">
+            <img src="assets/dashboard-overview.png" width="1255" height="720" loading="lazy" alt="Light research dashboard showing simulator telemetry, a trend chart, and the status of the MQTT, API, database, and vision-result paths" />
+            <figcaption>Local dashboard with synthetic telemetry and a persisted vision benchmark.</figcaption>
+          </figure>
         </div>
       </section>
 
@@ -129,6 +149,19 @@
         </dl>
       </section>
 
+      <section class="section shell author-section" id="author">
+        <div>
+          <h2>Research contact</h2>
+          <p>Tuoke Ke is a Computer Science student interested in reliable edge AI, visual perception, and resource-constrained intelligent systems.</p>
+        </div>
+        <dl class="author-list">
+          <div><dt>Author</dt><dd>Tuoke Ke</dd></div>
+          <div><dt>Email</dt><dd><a href="mailto:ketk0917@163.com">ketk0917@163.com</a></dd></div>
+          <div><dt>CV</dt><dd><a href="assets/tuoke-ke-cv.pdf">Download CV (PDF)</a></dd></div>
+          <div><dt>GitHub</dt><dd><a href="https://github.com/Kettkk">github.com/Kettkk</a></dd></div>
+        </dl>
+      </section>
+
       <section class="section reproduce-section" id="reproduce">
         <div class="shell reproduce-layout">
           <div>
@@ -147,7 +180,7 @@ docker compose up --build -d
 
     <footer class="site-footer">
       <div class="shell footer-layout">
-        <p>Research prototype by <a href="https://github.com/Kettkk">Kettkk</a>.</p>
+        <p>Research prototype by <a href="https://github.com/Kettkk">Tuoke Ke</a>.</p>
         <div>
           <a href="technical-report.md">Report source</a>
           <a href="https://github.com/Kettkk/smart-helmet-aiot/blob/main/LICENSE">Apache License 2.0</a>
