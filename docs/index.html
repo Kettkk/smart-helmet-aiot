@@ -22,6 +22,7 @@
         <div class="nav-links">
           <a href="#system">System</a>
           <a href="#evidence">Evidence</a>
+          <a href="#hardware">Hardware</a>
           <a href="#reproduce">Reproduce</a>
           <a class="button button-small" href="https://github.com/Kettkk/smart-helmet-aiot">View repository</a>
         </div>
@@ -35,8 +36,8 @@
           <h1>Measure the system, not just the model.</h1>
           <p class="hero-summary">A smart-helmet testbed for latency, throughput, detection continuity, and network reliability.</p>
           <div class="hero-actions">
-            <a class="button" href="https://github.com/Kettkk/smart-helmet-aiot/releases/download/v1.0.0/smart-helmet-aiot-technical-report.pdf">Read technical report</a>
-            <a class="text-link" href="https://github.com/Kettkk/smart-helmet-aiot#quick-start">Run locally <span aria-hidden="true">→</span></a>
+            <a class="button" href="https://github.com/Kettkk/smart-helmet-aiot/blob/main/output/pdf/smart-helmet-aiot-technical-report.pdf">Read technical report</a>
+            <a class="text-link" href="https://github.com/Kettkk/smart-helmet-aiot#run-the-local-closed-loop">Run locally <span aria-hidden="true">→</span></a>
           </div>
         </div>
         <figure class="hero-figure">
@@ -48,8 +49,8 @@
       <section class="metric-band" aria-label="Key measured results">
         <div class="shell metrics">
           <div><strong>4</strong><span>frame strides evaluated</span></div>
-          <div><strong>55.35</strong><span>maximum pipeline FPS</span></div>
-          <div><strong>99.17%</strong><span>continuity at stride 5</span></div>
+          <div><strong>55.35 FPS</strong><span>offline processing capacity at stride 10</span></div>
+          <div><strong>99.17%</strong><span>sampled-frame continuity at stride 5; not model accuracy</span></div>
           <div><strong>9/9</strong><span>outage trials recovered</span></div>
         </div>
       </section>
@@ -95,6 +96,24 @@
               </figure>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section class="section shell hardware-section" id="hardware">
+        <figure class="hardware-figure">
+          <img src="hardware/helmet-front.jpg" width="1600" height="1200" loading="lazy" alt="Physical smart helmet prototype with the camera and sensing electronics mounted on the shell" />
+          <figcaption>The physical prototype establishes the wearable origin of the reproducible software testbed.</figcaption>
+        </figure>
+        <div class="hardware-copy">
+          <h2>Physical prototype, explicit boundaries</h2>
+          <p>The public repository preserves the authored device integrations while keeping hardware optional for reproduction.</p>
+          <dl class="hardware-list">
+            <div><dt>ESP32-CAM</dt><dd>Camera capture and Wi-Fi image-stream integration.</dd></div>
+            <div><dt>ESP8266</dt><dd>UART parsing and telemetry bridge to the cloud-facing path.</dd></div>
+            <div><dt>STM32 boundary</dt><dd>Sensor acquisition originated in an external subsystem; its firmware is not claimed or included.</dd></div>
+          </dl>
+          <p class="hardware-note">Physical hardware is not required to reproduce the public telemetry and vision experiments.</p>
+          <a class="text-link" href="https://github.com/Kettkk/smart-helmet-aiot/blob/main/docs/hardware-prototype.md">Inspect the prototype record <span aria-hidden="true">→</span></a>
         </div>
       </section>
 

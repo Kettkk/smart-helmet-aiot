@@ -3,9 +3,37 @@
 **A reproducible edge-to-cloud prototype for outdoor safety monitoring and visual perception.**
 
 [Project homepage](https://kettkk.github.io/smart-helmet-aiot/) ·
-[Technical report (PDF)](https://github.com/Kettkk/smart-helmet-aiot/releases/download/v1.0.0/smart-helmet-aiot-technical-report.pdf) ·
+[Technical report (PDF)](output/pdf/smart-helmet-aiot-technical-report.pdf) ·
 [Report source](docs/technical-report.md) ·
 [Reproducibility guide](docs/local-closed-loop.md)
+
+## 30-second research summary
+
+**Research question.** How do frame-sampling frequency and network conditions
+affect latency, throughput, reliability, and detection continuity in a
+resource-constrained edge-to-cloud monitoring pipeline?
+
+**What I built.** A reproducible system that connects seeded MQTT telemetry and
+fixed-video YOLO inference to a Spring Boot API, MySQL storage, and a live Vue
+dashboard, with archived ESP8266 and ESP32-CAM firmware documenting the physical
+helmet prototype.
+
+**Three measured results.**
+
+| Experiment | Measured result |
+|---|---|
+| Frame sampling | Stride 5 sustained 34.56 pipeline FPS with 99.17% sampled-frame detection continuity; continuity is not model accuracy. |
+| Added publication delay | Mean observed latency increased from 2.74 ms at baseline to 207.91 ms with 200 ms of application-added delay. |
+| Broker outage recovery | All 9 outage trials recovered; subscription recovery averaged approximately 0.78 seconds after broker availability. |
+
+**My contribution.** I designed the public architecture; implemented the
+ESP8266 bridge and ESP32-CAM integration, backend, dashboard, simulators, and
+experiments; and documented the contribution boundary. The upstream STM32
+sensor firmware was developed by another contributor.
+
+**Review paths.** [Watch the demo](#system-demo) ·
+[Read the report](output/pdf/smart-helmet-aiot-technical-report.pdf) ·
+[Reproduce the closed loop](#run-the-local-closed-loop)
 
 ## System demo
 
@@ -24,18 +52,6 @@ and web and Android clients. This repository is the clean public version: it
 contains no production credentials or environment-specific deployment
 configuration. Prototype photographs are published with the participants'
 permission.
-
-> **Current status:** the credential-free telemetry and fixed-video loops are ready.
-> A deterministic simulator publishes MQTT telemetry, the Spring Boot service
-> validates and stores it in MySQL, and a REST API exposes latest and historical
-> samples. The same backend validates and persists measured vision benchmark
-> results, which the live Vue dashboard retrieves through REST. A reproducible
-> YOLO batch pipeline now processes a public-domain 20-second hiking sample and emits
-> an annotated video, structured detections, and latency/FPS measurements. A
-> separate MQTT benchmark measures delay, controlled loss, and recovery from
-> real broker outages. Archived ESP8266 and ESP32-CAM firmware plus physical
-> prototype evidence document the original wearable implementation. The mobile
-> client is retained only as a historical interface boundary.
 
 ## Research motivation
 
@@ -104,6 +120,9 @@ firmware in [`firmware/`](firmware/).
 
 ## Prototype capabilities
 
+<details>
+<summary><strong>View implementation coverage and reconstruction status</strong></summary>
+
 The working-directory audit found the following implemented components in the
 graduation prototype:
 
@@ -121,6 +140,8 @@ graduation prototype:
 The prototype data model includes helmet-wear status, body and ambient
 temperature, ambient humidity, heart rate, location, blood pressure, impact or
 body pressure, and movement speed.
+
+</details>
 
 ## My contribution
 
@@ -293,6 +314,9 @@ protocol and interpretation.
 
 ## Local API
 
+<details>
+<summary><strong>View REST endpoints</strong></summary>
+
 | Method | Endpoint | Purpose |
 |---|---|---|
 | `GET` | `/actuator/health` | Service and database health |
@@ -301,6 +325,8 @@ protocol and interpretation.
 | `GET` | `/api/v1/devices/{deviceId}/telemetry?limit=100` | Newest records, maximum 500 |
 | `POST` | `/api/v1/vision/benchmarks` | Validate and persist a measured vision benchmark |
 | `GET` | `/api/v1/vision/benchmarks/latest` | Latest benchmark and per-stride runs |
+
+</details>
 
 ## Roadmap
 
@@ -317,7 +343,7 @@ protocol and interpretation.
 - [x] Add backend integration tests and continuous integration
 - [x] Run latency, throughput, and network-reliability experiments
 - [x] Publish synthetic/raw benchmark data and reproducible plots
-- [ ] Publish a short technical report
+- [x] Publish a short technical report
 
 ## Limitations
 
