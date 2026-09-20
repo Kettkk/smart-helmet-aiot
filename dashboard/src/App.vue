@@ -1,7 +1,7 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import * as echarts from 'echarts/core'
-import { LineChart } from 'echarts/charts'
+import { BarChart, LineChart } from 'echarts/charts'
 import { GridComponent, LegendComponent, TooltipComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 import {
@@ -14,8 +14,9 @@ import {
   ServerCog,
   Wifi,
 } from '@lucide/vue'
+import visionResults from './vision-results.json'
 
-echarts.use([LineChart, GridComponent, LegendComponent, TooltipComponent, CanvasRenderer])
+echarts.use([BarChart, LineChart, GridComponent, LegendComponent, TooltipComponent, CanvasRenderer])
 
 const devices = ref([])
 const selectedDevice = ref('')
@@ -26,7 +27,9 @@ const loading = ref(true)
 const error = ref('')
 const lastRefresh = ref(null)
 const trendChart = ref(null)
+const visionChart = ref(null)
 let chart
+let benchmarkChart
 let pollTimer
 
 function displayNumber(value, digits = 1) {
@@ -117,6 +120,66 @@ const mapUrl = computed(() => {
   if (!latest.value) return '#'
   return `https://www.openstreetmap.org/?mlat=${latest.value.latitude}&mlon=${latest.value.longitude}#map=16/${latest.value.latitude}/${latest.value.longitude}`
 })
+
+const visionRuns = computed(() => [...visionResults.runs].sort((a, b) => b.samplingFps - a.samplingFps))
+const operatingPoint = computed(() => visionResults.runs.find(
+  (run) => run.frameStride === visionResults.operatingPointStride,
+))
+
+function renderVisionChart() {
+  if (!visionChart.value) return
+  if (!benchmarkChart) benchmarkChart = echarts.init(visionChart.value, null, { renderer: 'canvas' })
+  const rows = [...visionResults.runs].sort((a, b) => a.samplingFps - b.samplingFps)
+  const styles = getComputedStyle(document.documentElement)
+  const textMuted = styles.getPropertyValue('--text-muted').trim()
+  const textPrimary = styles.getPropertyValue('--text-primary').trim()
+  const borderColor = styles.getPropertyValue('--border').trim()
+  const surface = styles.getPropertyValue('--surface').trim()
+  const accent = styles.getPropertyValue('--accent').trim()
+
+  benchmarkChart.setOption({
+    animationDuration: 220,
+    backgroundColor: 'transparent',
+    textStyle: { color: textMuted, fontFamily: '-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif' },
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: surface,
+      borderColor,
+      extraCssText: 'box-shadow: none; border-radius: 6px;',
+      textStyle: { color: textPrimary, fontSize: 11 },
+      formatter: (items) => {
+        const row = rows[items[0].dataIndex]
+        return `<strong>${row.samplingFps} sampled FPS</strong><br/>Pipeline: ${row.pipelineFps.toFixed(1)} FPS<br/>Mean inference: ${row.meanLatencyMs.toFixed(1)} ms<br/>p95: ${row.p95LatencyMs.toFixed(1)} ms`
+      },
+    },
+    grid: { left: 8, right: 10, top: 14, bottom: 8, containLabel: true },
+    xAxis: {
+      type: 'category',
+      name: 'Sampled FPS',
+      nameLocation: 'middle',
+      nameGap: 28,
+      data: rows.map((row) => row.samplingFps),
+      axisLine: { lineStyle: { color: borderColor } },
+      axisTick: { show: false },
+      axisLabel: { color: textMuted, fontSize: 9 },
+      nameTextStyle: { color: textMuted, fontSize: 9 },
+    },
+    yAxis: {
+      type: 'value',
+      name: 'Pipeline FPS',
+      splitLine: { lineStyle: { color: borderColor } },
+      axisLabel: { color: textMuted, fontSize: 9 },
+      nameTextStyle: { color: textMuted, fontSize: 9 },
+    },
+    series: [{
+      name: 'Pipeline FPS',
+      type: 'bar',
+      barMaxWidth: 44,
+      itemStyle: { color: accent, borderRadius: [3, 3, 0, 0] },
+      data: rows.map((row) => row.pipelineFps),
+    }],
+  }, true)
+}
 
 async function fetchJson(url) {
   const response = await fetch(url)
@@ -256,9 +319,12 @@ async function chooseDevice(event) {
 
 function resizeChart() {
   chart?.resize()
+  benchmarkChart?.resize()
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await nextTick()
+  renderVisionChart()
   refresh()
   pollTimer = window.setInterval(refresh, 2000)
   window.addEventListener('resize', resizeChart)
@@ -268,6 +334,7 @@ onBeforeUnmount(() => {
   window.clearInterval(pollTimer)
   window.removeEventListener('resize', resizeChart)
   chart?.dispose()
+  benchmarkChart?.dispose()
 })
 </script>
 
@@ -389,6 +456,60 @@ onBeforeUnmount(() => {
         </a>
         <p class="position-note">Synthetic coordinates. No personal location data.</p>
       </article>
+    </section>
+
+    <section class="panel vision-panel" aria-labelledby="vision-heading">
+      <div class="panel-heading vision-heading">
+        <div>
+          <div class="eyebrow-row">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span>Measured benchmark</span>
+          </div>
+          <h2 id="vision-heading">Vision frame-sampling study</h2>
+          <p>YOLO inference on a fixed 20-second hiking clip in a CPU-only Docker environment.</p>
+        </div>
+        <a class="map-link" href="https://github.com/Kettkk/smart-helmet-aiot/blob/main/docs/vision-demo.md" target="_blank" rel="noreferrer">
+          Method and raw results <ExternalLink :size="13" />
+        </a>
+      </div>
+
+      <div class="vision-summary" aria-label="Selected vision operating point">
+        <div><span>Operating point</span><strong>Stride {{ operatingPoint.frameStride }}</strong></div>
+        <div><span>Sampling rate</span><strong>{{ operatingPoint.samplingFps.toFixed(1) }} FPS</strong></div>
+        <div><span>Mean inference</span><strong>{{ operatingPoint.meanLatencyMs.toFixed(1) }} ms</strong></div>
+        <div><span>p95 inference</span><strong>{{ operatingPoint.p95LatencyMs.toFixed(1) }} ms</strong></div>
+        <div><span>Pipeline throughput</span><strong>{{ operatingPoint.pipelineFps.toFixed(1) }} FPS</strong></div>
+      </div>
+
+      <div class="vision-content">
+        <div>
+          <div ref="visionChart" class="vision-chart" role="img" aria-label="Pipeline throughput by effective sampling rate"></div>
+          <p class="chart-note">Lower sampling frequency reduces total work; inference latency per processed frame remains near 106–109 ms.</p>
+        </div>
+        <div class="table-scroll vision-table-scroll">
+          <table class="vision-table">
+            <thead><tr><th>Stride</th><th>Sampled FPS</th><th>Frames</th><th>Mean</th><th>p95</th><th>Pipeline</th></tr></thead>
+            <tbody>
+              <tr v-for="run in visionRuns" :key="run.frameStride" :class="{ 'is-operating-point': run.frameStride === visionResults.operatingPointStride }">
+                <td>{{ run.frameStride }}<span v-if="run.frameStride === visionResults.operatingPointStride" class="table-badge">Selected</span></td>
+                <td>{{ run.samplingFps.toFixed(1) }}</td>
+                <td>{{ run.processedFrames }}</td>
+                <td>{{ run.meanLatencyMs.toFixed(1) }} ms</td>
+                <td>{{ run.p95LatencyMs.toFixed(1) }} ms</td>
+                <td>{{ run.pipelineFps.toFixed(1) }} FPS</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="benchmark-meta">
+        <span>{{ visionResults.configuration.model }}</span>
+        <span>{{ visionResults.configuration.device }}</span>
+        <span>{{ visionResults.configuration.imageSize }} px input</span>
+        <span>Confidence {{ visionResults.configuration.confidence }}</span>
+        <span>{{ visionResults.input.resolution }} source</span>
+      </div>
     </section>
 
     <footer>

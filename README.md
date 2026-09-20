@@ -13,7 +13,8 @@ deployment configuration.
 > **Current status:** the credential-free telemetry and fixed-video loops are ready.
 > A deterministic simulator publishes MQTT telemetry, the Spring Boot service
 > validates and stores it in MySQL, and a REST API exposes latest and historical
-> samples. A live Vue dashboard visualises the resulting state. A reproducible
+> samples. A live Vue dashboard visualises the resulting state and the measured
+> vision benchmark. A reproducible
 > YOLO batch pipeline now processes a licensed 20-second hiking sample and emits
 > an annotated video, structured detections, and latency/FPS measurements. The
 > mobile client remains reconstruction work.

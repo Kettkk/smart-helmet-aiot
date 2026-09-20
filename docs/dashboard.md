@@ -13,11 +13,24 @@ local telemetry loop. It is implemented with Vue 3, Vite, ECharts, and Nginx.
 - Observed simulator, MQTT stream, application API, and persistence stages
 - Latest synthetic coordinates and pressure value
 - The eight newest raw telemetry records
+- A measured frame-sampling benchmark with the selected real-time operating
+  point, throughput chart, and complete latency table
 - Explicit loading, empty, stale-data, and connection-error states
 
 The client polls the local REST API every two seconds. Nginx serves the static
 production build and proxies `/api` and `/actuator` to the backend, so the
 browser uses one origin and requires no permissive CORS configuration.
+
+The vision benchmark is static, versioned research evidence rather than a live
+API response. Regenerate `dashboard/src/vision-results.json` from the canonical
+benchmark artifact whenever the experiment changes:
+
+```bash
+python experiments/export_dashboard_results.py
+```
+
+CI repeats this export and fails if the committed dashboard data no longer
+matches `experiments/results/frame-sampling/benchmark.json`.
 
 ## Run
 
