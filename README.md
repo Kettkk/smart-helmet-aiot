@@ -2,6 +2,11 @@
 
 **A reproducible edge-to-cloud prototype for outdoor safety monitoring and visual perception.**
 
+[Project homepage](https://kettkk.github.io/smart-helmet-aiot/) ·
+[Technical report (PDF)](https://github.com/Kettkk/smart-helmet-aiot/releases/download/v1.0.0/smart-helmet-aiot-technical-report.pdf) ·
+[Report source](docs/technical-report.md) ·
+[Reproducibility guide](docs/local-closed-loop.md)
+
 ## System demo
 
 [![Smart Helmet AIoT end-to-end demo](docs/demo.gif)](docs/demo.mp4)
@@ -23,14 +28,14 @@ permission.
 > **Current status:** the credential-free telemetry and fixed-video loops are ready.
 > A deterministic simulator publishes MQTT telemetry, the Spring Boot service
 > validates and stores it in MySQL, and a REST API exposes latest and historical
-> samples. A live Vue dashboard visualises the resulting state and the measured
-> vision benchmark. A reproducible
-> YOLO batch pipeline now processes a licensed 20-second hiking sample and emits
+> samples. The same backend validates and persists measured vision benchmark
+> results, which the live Vue dashboard retrieves through REST. A reproducible
+> YOLO batch pipeline now processes a public-domain 20-second hiking sample and emits
 > an annotated video, structured detections, and latency/FPS measurements. A
 > separate MQTT benchmark measures delay, controlled loss, and recovery from
 > real broker outages. Archived ESP8266 and ESP32-CAM firmware plus physical
 > prototype evidence document the original wearable implementation. The mobile
-> client remains reconstruction work.
+> client is retained only as a historical interface boundary.
 
 ## Research motivation
 
@@ -42,11 +47,12 @@ between sensing rate, inference frequency, network quality, and response time.
 This project asks:
 
 > How do frame-sampling frequency and network conditions affect the latency,
-> throughput, reliability, and detection utility of a resource-constrained
+> throughput, reliability, and detection continuity of a resource-constrained
 > edge-to-cloud monitoring pipeline?
 
-The reconstruction is designed to turn the original engineering prototype into
-an experimental platform for studying that question.
+This is the project's complete research scope. It measures latency, throughput,
+detection continuity, and transport reliability; it does not investigate model
+accuracy, medical validity, energy optimisation, or edge–cloud offloading.
 
 ## System overview
 
@@ -54,35 +60,31 @@ an experimental platform for studying that question.
 
 ```mermaid
 flowchart LR
-    subgraph Edge[Edge devices or local simulators]
-        S[Wearable sensors]
-        C[ESP32-CAM or video sample]
+    subgraph Live[Live telemetry path]
+        S[Seeded telemetry simulator] -->|MQTT QoS 1| M[Mosquitto]
+        M --> B[Spring Boot ingestion and REST APIs]
     end
 
-    subgraph Cloud[Application services]
-        I[IoT message ingestion]
-        V[Vision inference service]
-        B[Spring Boot API]
-        D[(MySQL)]
+    subgraph Batch[Offline vision evaluation]
+        V[SHA-256-verified 20 s video] --> Y[YOLO batch inference]
+        Y --> R[JSONL / CSV / annotated video]
+        R --> P[Research plots]
+        R -->|POST benchmark summary| B
     end
 
-    subgraph Clients[Monitoring clients]
-        W[Vue web dashboard]
-        A[Android application]
-    end
+    B --> D[(MySQL telemetry and vision results)]
+    B -->|REST polling| W[Vue dashboard]
 
-    S -->|MQTT / AMQP telemetry| I
-    C -->|image stream| V
-    I --> B
-    V -->|structured detections / frames| B
-    B <--> D
-    B -->|REST / WebSocket| W
-    B -->|REST / WebSocket| A
+    H[Archived helmet hardware and firmware] -. documented physical origin .-> S
+    C[Archived ESP32-CAM firmware] -. replaced by controlled input .-> V
 ```
 
-The public evaluation path will support simulators and fixed video inputs so
-that the complete pipeline can be reproduced without physical hardware or a
-commercial cloud account.
+The two solid paths above are implemented and reproducible without physical
+hardware or a commercial cloud account. The vision experiment remains an
+offline batch process, but its structured benchmark summary is now validated,
+stored, and served by Spring Boot rather than bundled into the frontend. The
+repository does not claim live video-frame delivery or a vision WebSocket. The
+archived hardware records research provenance rather than a runtime dependency.
 
 ## Physical wearable prototype
 
@@ -113,8 +115,8 @@ graduation prototype:
 | Application backend | Java 17, Spring Boot 3, MyBatis, MySQL, REST endpoints | Clean Spring Boot REST API implemented |
 | Sensor state storage | Insert/update logic for per-device status records | MySQL schema and Flyway migration implemented |
 | Web client | Vue 3, Vite, Element Plus, ECharts, REST and WebSocket integration | Live Vue dashboard connected to the local REST API |
-| Android client | Sensor display, navigation, video/WebSocket integration | API boundary and configuration need refactoring |
-| Vision display | Browser client receives JPEG frames over WebSocket | Fixed-video YOLO inference and benchmark artifacts implemented |
+| Android client | Sensor display, navigation, video/WebSocket integration | Historical boundary; excluded from the tested public stack |
+| Vision display | Browser client receives JPEG frames over WebSocket | Fixed-video benchmark is persisted by Spring Boot and displayed through REST |
 
 The prototype data model includes helmet-wear status, body and ambient
 temperature, ambient humidity, heart rate, location, blood pressure, impact or
@@ -134,7 +136,9 @@ body pressure, and movement speed.
 - Integrated cloud IoT messages and device-shadow data into the application
   pipeline.
 - Developed web and Android interfaces for telemetry and visual monitoring.
-- Integrated the client-side path for receiving real-time detection frames.
+- Integrated the historical prototype's client-side path for receiving
+  real-time detection frames; the public reconstruction uses versioned batch
+  results instead.
 - Defined the portfolio reconstruction and evaluation plan for latency,
   throughput, and reliability experiments.
 
@@ -145,20 +149,21 @@ demonstrations.
 
 | Experiment | Controlled variables | Reported metrics |
 |---|---|---|
-| Vision performance | model, input resolution, frame-sampling interval | throughput, mean latency, p95 latency |
+| Vision performance | frame-sampling interval; fixed model and resolution | throughput, mean latency, p95 latency |
 | Network robustness | added delay, packet loss, disconnection duration | delivery rate, reconnect time, missing samples |
-| Accuracy–latency trade-off | inference frequency and model size | detection metric, FPS, end-to-end latency |
+| Sampling–continuity trade-off | inference frequency | sampled-frame continuity rate, FPS, end-to-end latency |
 
 Every published figure is accompanied by its experiment configuration, raw
 anonymised results, and plotting script.
 
 ### Measured frame-sampling result
 
-The fixed 20-second video was evaluated with strides 1, 2, 5, and 10 in the
-same CPU-only Docker environment. Per-inference latency remained near 106–109
-ms, while reducing inference frequency increased whole-pipeline throughput.
-Stride 5 was the highest tested sampling frequency that processed the 30 fps
-source faster than real time on the measured machine.
+The SHA-256-pinned 20-second video was evaluated with strides 1, 2, 5, and 10
+in the same CPU-only Docker environment. Mean latency was 108–110 ms for
+strides 2–10; the stride-1 run showed heavier tail latency (317 ms p95).
+Reducing inference frequency increased whole-pipeline throughput, and stride 5
+was the highest tested sampling frequency that processed the 30 fps source
+faster than real time on the measured machine.
 
 ![Frame-sampling latency and throughput comparison](experiments/plots/vision/frame-sampling-comparison.png)
 
@@ -191,8 +196,8 @@ claim about physical wireless packet loss.
 
 ```text
 smart-helmet-aiot/
-├── android/            # Android monitoring client
-├── backend/            # Telemetry ingestion and application API
+├── android/            # Historical Android boundary and reconstruction notes
+├── backend/            # Telemetry ingestion and vision benchmark REST APIs
 ├── dashboard/          # Vue monitoring dashboard
 ├── data/               # Small, non-sensitive sample inputs
 ├── docs/               # Architecture, decisions, limitations, and demo
@@ -200,7 +205,7 @@ smart-helmet-aiot/
 ├── firmware/           # Archived ESP8266 and ESP32-CAM integrations
 ├── infrastructure/     # Local broker configuration
 ├── scripts/            # Repeatable smoke-test commands
-├── simulator/          # Hardware-independent telemetry and network simulation
+├── simulator/          # Deterministic hardware-independent telemetry publisher
 ├── vision-service/     # Reproducible object-detection service
 └── compose.yaml        # Local end-to-end environment
 ```
@@ -249,11 +254,24 @@ Run the fixed-video detection path independently:
 ./scripts/run-vision-demo.sh
 ```
 
+The command automatically downloads the public-domain reference clip and
+verifies SHA-256 digests before running inference. FFmpeg, `curl`, and Python 3
+are required for first-time sample preparation.
+
 Run the controlled frame-sampling benchmark and regenerate its figures:
 
 ```bash
 ./scripts/run-vision-benchmark.sh
 ./scripts/plot-vision-results.sh
+```
+
+With the local Compose stack running, the benchmark command automatically
+publishes its validated summary to Spring Boot. Set
+`VISION_PUBLISH_RESULTS=false` only when intentionally generating artifacts
+without a backend. To republish existing results, run:
+
+```bash
+./scripts/publish-vision-results.sh
 ```
 
 It writes an annotated video, frame-level JSONL/CSV records, and a measured
@@ -281,6 +299,8 @@ protocol and interpretation.
 | `GET` | `/api/v1/devices` | Known devices and last-seen times |
 | `GET` | `/api/v1/devices/{deviceId}/latest` | Latest validated record |
 | `GET` | `/api/v1/devices/{deviceId}/telemetry?limit=100` | Newest records, maximum 500 |
+| `POST` | `/api/v1/vision/benchmarks` | Validate and persist a measured vision benchmark |
+| `GET` | `/api/v1/vision/benchmarks/latest` | Latest benchmark and per-stride runs |
 
 ## Roadmap
 
@@ -289,13 +309,15 @@ protocol and interpretation.
 - [x] Publish physical-prototype evidence and attributed firmware
 - [x] Migrate and refactor the Spring Boot backend
 - [x] Add a portable database schema and synthetic telemetry generator
-- [x] Add a locally reproducible vision service and fixed video sample
+- [x] Add a locally reproducible vision service and a hash-verified video sample
 - [x] Connect the web dashboard to the local REST API
+- [x] Persist vision benchmark results in the backend and serve them to the dashboard
 - [x] Package the telemetry pipeline and dashboard with Docker Compose
 - [ ] Add WebSocket push updates
 - [x] Add backend integration tests and continuous integration
 - [x] Run latency, throughput, and network-reliability experiments
-- [ ] Publish an anonymised dataset, plots, and a short technical report
+- [x] Publish synthetic/raw benchmark data and reproducible plots
+- [ ] Publish a short technical report
 
 ## Limitations
 
@@ -304,10 +326,8 @@ protocol and interpretation.
 - The STM32 acquisition firmware was developed outside this portfolio and is
   not included. The public ESP8266 code documents the UART boundary rather than
   claiming the complete sensor acquisition stack.
-- The inspected client code contains environment-specific endpoints that will
-  be replaced with runtime configuration during migration.
-- The original Android prototype accesses application data too directly; the
-  reconstruction will place a documented API between clients and storage.
+- The Android client is retained only as a documented historical boundary and
+  is not part of the reproducible Compose stack.
 - The vision sample has no ground-truth labels. It supports system-performance
   measurements and qualitative inspection, but not precision, recall, or mAP
   claims; a versioned evaluation dataset is still required for those metrics.
@@ -325,9 +345,16 @@ prototype photographs are included with permission from the people shown. See
 
 ## Technology stack
 
-Java 17 · Spring Boot 3 · Spring Data JPA · Flyway · MySQL · MQTT/AMQP · Huawei Cloud IoTDA ·
-Vue 3 · Vite · ECharts · Nginx · Android · WebSocket · YOLO-based visual
-perception
+Java 17 · Spring Boot 3 · Spring Data JPA · Flyway · MySQL · MQTT · Mosquitto ·
+Vue 3 · Vite · ECharts · Nginx · Docker Compose · YOLO-based visual perception
+
+## License
+
+Original code and documentation in this repository are licensed under the
+[Apache License 2.0](LICENSE). Third-party components and media retain their
+own notices: the ESP32-CAM archive preserves Espressif attribution, and the
+fixed research video is a public-domain U.S. federal government work documented
+in [data/samples/README.md](data/samples/README.md).
 
 ## Academic context
 

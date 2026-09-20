@@ -1,7 +1,8 @@
-# Web telemetry dashboard
+# Web research dashboard
 
 The dashboard is a responsive working surface for observing the reproducible
-local telemetry loop. It is implemented with Vue 3, Vite, ECharts, and Nginx.
+local telemetry loop and persisted vision benchmark. It is implemented with
+Vue 3, Vite, ECharts, and Nginx.
 
 ## What it shows
 
@@ -21,16 +22,18 @@ The client polls the local REST API every two seconds. Nginx serves the static
 production build and proxies `/api` and `/actuator` to the backend, so the
 browser uses one origin and requires no permissive CORS configuration.
 
-The vision benchmark is static, versioned research evidence rather than a live
-API response. Regenerate `dashboard/src/vision-results.json` from the canonical
-benchmark artifact whenever the experiment changes:
+The vision benchmark is loaded from the backend rather than bundled into the
+frontend. The dashboard requests `GET /api/v1/vision/benchmarks/latest`.
+Publish the canonical benchmark with:
 
 ```bash
-python experiments/export_dashboard_results.py
+./scripts/publish-vision-results.sh
 ```
 
-CI repeats this export and fails if the committed dashboard data no longer
-matches `experiments/results/frame-sampling/benchmark.json`.
+The backend validates and persists the benchmark and its per-stride runs. If no
+result has been published, the panel shows an explicit empty state while live
+telemetry continues to work. CI validates that the canonical experiment can be
+converted to the backend request schema.
 
 ## Run
 

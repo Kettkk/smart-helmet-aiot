@@ -21,6 +21,7 @@ firmware/**/config.h
 *.class
 *.jar
 *.apk
+tmp/
 
 # IDE and operating-system files
 .DS_Store

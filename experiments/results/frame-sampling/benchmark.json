@@ -12,7 +12,7 @@
   "runs": [
     {
       "schema_version": 1,
-      "created_at": "2026-09-18T09:05:23.018466+00:00",
+      "created_at": "2026-09-20T06:31:30.441219+00:00",
       "input": {
         "file": "outdoor-hiking-20s.mp4",
         "width": 1280,
@@ -36,18 +36,18 @@
       },
       "performance": {
         "processed_frames": 600,
-        "processing_wall_time_s": 68.802,
-        "pipeline_fps": 8.721,
-        "inference_fps": 9.458,
-        "mean_inference_latency_ms": 105.726,
-        "p50_inference_latency_ms": 104.948,
-        "p95_inference_latency_ms": 111.703
+        "processing_wall_time_s": 79.017,
+        "pipeline_fps": 7.593,
+        "inference_fps": 8.065,
+        "mean_inference_latency_ms": 123.999,
+        "p50_inference_latency_ms": 107.106,
+        "p95_inference_latency_ms": 317.425
       },
       "detections": {
-        "sampled_frames_with_detections": 600,
-        "sampled_frame_detection_rate": 1.0,
+        "sampled_frames_with_detections": 597,
+        "sampled_frame_detection_rate": 0.995,
         "count_by_class": {
-          "person": 619
+          "person": 3354
         }
       },
       "artifacts": {
@@ -59,7 +59,7 @@
     },
     {
       "schema_version": 1,
-      "created_at": "2026-09-18T09:06:08.043276+00:00",
+      "created_at": "2026-09-20T06:32:12.233173+00:00",
       "input": {
         "file": "outdoor-hiking-20s.mp4",
         "width": 1280,
@@ -83,18 +83,18 @@
       },
       "performance": {
         "processed_frames": 300,
-        "processing_wall_time_s": 38.02,
-        "pipeline_fps": 15.781,
-        "inference_fps": 9.211,
-        "mean_inference_latency_ms": 108.565,
-        "p50_inference_latency_ms": 107.062,
-        "p95_inference_latency_ms": 114.772
+        "processing_wall_time_s": 37.307,
+        "pipeline_fps": 16.083,
+        "inference_fps": 9.112,
+        "mean_inference_latency_ms": 109.745,
+        "p50_inference_latency_ms": 108.364,
+        "p95_inference_latency_ms": 116.368
       },
       "detections": {
-        "sampled_frames_with_detections": 300,
-        "sampled_frame_detection_rate": 1.0,
+        "sampled_frames_with_detections": 298,
+        "sampled_frame_detection_rate": 0.993333,
         "count_by_class": {
-          "person": 310
+          "person": 1671
         }
       },
       "artifacts": {
@@ -106,7 +106,7 @@
     },
     {
       "schema_version": 1,
-      "created_at": "2026-09-18T09:06:32.898614+00:00",
+      "created_at": "2026-09-20T06:32:34.031349+00:00",
       "input": {
         "file": "outdoor-hiking-20s.mp4",
         "width": 1280,
@@ -130,18 +130,18 @@
       },
       "performance": {
         "processed_frames": 120,
-        "processing_wall_time_s": 17.906,
-        "pipeline_fps": 33.508,
-        "inference_fps": 9.472,
-        "mean_inference_latency_ms": 105.57,
-        "p50_inference_latency_ms": 104.973,
-        "p95_inference_latency_ms": 108.214
+        "processing_wall_time_s": 17.36,
+        "pipeline_fps": 34.562,
+        "inference_fps": 9.22,
+        "mean_inference_latency_ms": 108.466,
+        "p50_inference_latency_ms": 107.921,
+        "p95_inference_latency_ms": 114.884
       },
       "detections": {
-        "sampled_frames_with_detections": 120,
-        "sampled_frame_detection_rate": 1.0,
+        "sampled_frames_with_detections": 119,
+        "sampled_frame_detection_rate": 0.991667,
         "count_by_class": {
-          "person": 123
+          "person": 667
         }
       },
       "artifacts": {
@@ -153,7 +153,7 @@
     },
     {
       "schema_version": 1,
-      "created_at": "2026-09-18T09:06:51.408883+00:00",
+      "created_at": "2026-09-20T06:32:49.306522+00:00",
       "input": {
         "file": "outdoor-hiking-20s.mp4",
         "width": 1280,
@@ -177,18 +177,18 @@
       },
       "performance": {
         "processed_frames": 60,
-        "processing_wall_time_s": 11.651,
-        "pipeline_fps": 51.498,
-        "inference_fps": 9.301,
-        "mean_inference_latency_ms": 107.518,
-        "p50_inference_latency_ms": 107.226,
-        "p95_inference_latency_ms": 110.87
+        "processing_wall_time_s": 10.84,
+        "pipeline_fps": 55.35,
+        "inference_fps": 9.08,
+        "mean_inference_latency_ms": 110.137,
+        "p50_inference_latency_ms": 109.103,
+        "p95_inference_latency_ms": 114.677
       },
       "detections": {
-        "sampled_frames_with_detections": 60,
-        "sampled_frame_detection_rate": 1.0,
+        "sampled_frames_with_detections": 59,
+        "sampled_frame_detection_rate": 0.983333,
         "count_by_class": {
-          "person": 62
+          "person": 330
         }
       },
       "artifacts": {

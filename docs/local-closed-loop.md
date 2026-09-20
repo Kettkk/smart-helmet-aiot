@@ -1,19 +1,21 @@
-# Local telemetry closed loop
+# Local system closed loop
 
-This is the smallest independently reproducible slice of the Smart Helmet
-system. It deliberately excludes Huawei Cloud, physical sensors, camera input,
-and user interfaces so that the data path can be verified before more modules
-are added.
+This is the independently reproducible Smart Helmet system. It excludes Huawei
+Cloud and physical devices, replacing them with controlled telemetry and video
+inputs. The two paths meet at the Spring Boot/MySQL boundary and are read by the
+Vue dashboard.
 
 ```text
-Python simulator -> MQTT topic -> Spring Boot validator -> MySQL -> REST API
-                         Mosquitto                  Flyway
+Python simulator -> MQTT topic -> Spring Boot validator -> MySQL -> REST -> Vue
+                         Mosquitto                  Flyway             dashboard
+
+Fixed video -> YOLO benchmark -> POST Spring Boot -> MySQL -> REST dashboard
 ```
 
 ## Start and verify
 
 1. Start Docker Desktop and wait until its engine reports that it is running.
-2. Copy the safe local defaults and start the four services:
+2. Copy the safe local defaults and start the five live services:
 
    ```bash
    cp .env.example .env
@@ -26,6 +28,9 @@ Python simulator -> MQTT topic -> Spring Boot validator -> MySQL -> REST API
    ```bash
    ./scripts/smoke-test.sh
    ```
+
+   The smoke test publishes the committed vision benchmark payload before
+   checking that it can be read through the backend.
 
 4. Inspect a short history or follow the publisher logs:
 
@@ -87,6 +92,10 @@ The first loop is accepted when all of the following hold:
 - The backend subscribes to the configured topic and stores valid messages.
 - The health endpoint reports `UP`.
 - Latest and history endpoints return `helmet-sim-001`.
+- A benchmark payload can be persisted idempotently and returned from
+  `/api/v1/vision/benchmarks/latest`.
+- The dashboard proxy returns the persisted vision result rather than a bundled
+  frontend JSON file.
 - Data remains queryable after restarting the backend container.
 - No cloud credentials, production endpoints, or personal measurements are
   required.
@@ -143,5 +152,13 @@ python3 -m venv /tmp/smart-helmet-simulator-venv
 /tmp/smart-helmet-simulator-venv/bin/python simulator/telemetry_simulator.py
 ```
 
-Run `./scripts/smoke-test.sh` from a third terminal. Stop the two host processes
-with `Ctrl+C`, then stop the infrastructure with `docker compose down`.
+In a third terminal, run the dashboard development server:
+
+```bash
+npm --prefix dashboard ci --no-audit --no-fund
+npm --prefix dashboard run dev
+```
+
+Run `DASHBOARD_URL=http://localhost:5173 ./scripts/smoke-test.sh` from a fourth
+terminal. Stop the three host processes with `Ctrl+C`, then stop the
+infrastructure with `docker compose down`.

@@ -44,6 +44,9 @@ jobs:
           grep -q '#include "config.h"' firmware/esp32-camera/CameraWebServer.ino
       - name: Test fixed-video pipeline
         run: |
+          sh -n scripts/download-video-sample.sh scripts/run-vision-demo.sh scripts/run-vision-benchmark.sh scripts/publish-vision-results.sh
+          grep -q '2df5b656d692d7c882a8a504a35223e08fb101974c412f6f62fe71b213feca01' scripts/download-video-sample.sh
+          grep -q '49a5a01f2721be546fb45900ea927efcc04431c1abe181a651b53d90547d64c7' scripts/download-video-sample.sh
           python -m pip install --requirement vision-service/requirements-dev.txt
           PYTHONPATH=vision-service pytest vision-service/tests
           python -m py_compile experiments/plot_vision_results.py experiments/export_dashboard_results.py
@@ -56,10 +59,10 @@ jobs:
           test -s /tmp/network-plots/delivery_rate_vs_packet_loss.png
           test -s /tmp/network-plots/reconnect_time_vs_outage.png
           test -s /tmp/network-plots/latency_vs_added_delay.png
-      - name: Verify dashboard benchmark data
+      - name: Verify backend vision payload
         run: |
-          python experiments/export_dashboard_results.py
-          git diff --exit-code -- dashboard/src/vision-results.json
+          python experiments/export_dashboard_results.py --output /tmp/vision-payload.json
+          python -c "import json; data=json.load(open('/tmp/vision-payload.json')); assert data['runs'] and data['operatingPointStride']"
       - name: Build dashboard
         working-directory: dashboard
         run: npm ci --no-audit --no-fund && npm run build

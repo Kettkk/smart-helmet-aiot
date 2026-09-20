@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export the measured frame-sampling benchmark for the web dashboard."""
+"""Export the measured frame-sampling benchmark as a backend API payload."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from pathlib import Path
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_INPUT = REPOSITORY_ROOT / "experiments/results/frame-sampling/benchmark.json"
-DEFAULT_OUTPUT = REPOSITORY_ROOT / "dashboard/src/vision-results.json"
+DEFAULT_OUTPUT = REPOSITORY_ROOT / "experiments/results/frame-sampling/dashboard-payload.json"
 
 
 def export_results(input_path: Path, output_path: Path) -> None:
@@ -26,7 +26,7 @@ def export_results(input_path: Path, output_path: Path) -> None:
             "meanLatencyMs": run["performance"]["mean_inference_latency_ms"],
             "p95LatencyMs": run["performance"]["p95_inference_latency_ms"],
             "pipelineFps": run["performance"]["pipeline_fps"],
-            "detectionRate": run["detections"]["sampled_frame_detection_rate"],
+            "continuityRate": run["detections"]["sampled_frame_detection_rate"],
         }
         for run in runs
     ]

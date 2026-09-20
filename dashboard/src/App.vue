@@ -14,8 +14,6 @@ import {
   ServerCog,
   Wifi,
 } from '@lucide/vue'
-import visionResults from './vision-results.json'
-
 echarts.use([BarChart, LineChart, GridComponent, LegendComponent, TooltipComponent, CanvasRenderer])
 
 const devices = ref([])
@@ -26,11 +24,15 @@ const apiHealthy = ref(false)
 const loading = ref(true)
 const error = ref('')
 const lastRefresh = ref(null)
+const visionResults = ref(null)
+const visionLoading = ref(true)
+const visionError = ref('')
 const trendChart = ref(null)
 const visionChart = ref(null)
 let chart
 let benchmarkChart
 let pollTimer
+let visionPollTimer
 
 function displayNumber(value, digits = 1) {
   return Number.isFinite(value) ? value.toFixed(digits) : '--'
@@ -114,6 +116,12 @@ const systemStages = computed(() => [
     icon: Database,
     active: history.value.length > 0,
   },
+  {
+    label: 'Vision results API',
+    detail: visionResults.value ? 'Persisted benchmark loaded' : 'No published benchmark',
+    icon: Database,
+    active: Boolean(visionResults.value),
+  },
 ])
 
 const mapUrl = computed(() => {
@@ -121,15 +129,15 @@ const mapUrl = computed(() => {
   return `https://www.openstreetmap.org/?mlat=${latest.value.latitude}&mlon=${latest.value.longitude}#map=16/${latest.value.latitude}/${latest.value.longitude}`
 })
 
-const visionRuns = computed(() => [...visionResults.runs].sort((a, b) => b.samplingFps - a.samplingFps))
-const operatingPoint = computed(() => visionResults.runs.find(
-  (run) => run.frameStride === visionResults.operatingPointStride,
+const visionRuns = computed(() => [...(visionResults.value?.runs ?? [])].sort((a, b) => b.samplingFps - a.samplingFps))
+const operatingPoint = computed(() => visionResults.value?.runs.find(
+  (run) => run.frameStride === visionResults.value.operatingPointStride,
 ))
 
 function renderVisionChart() {
-  if (!visionChart.value) return
+  if (!visionChart.value || !visionResults.value?.runs.length) return
   if (!benchmarkChart) benchmarkChart = echarts.init(visionChart.value, null, { renderer: 'canvas' })
-  const rows = [...visionResults.runs].sort((a, b) => a.samplingFps - b.samplingFps)
+  const rows = [...visionResults.value.runs].sort((a, b) => a.samplingFps - b.samplingFps)
   const styles = getComputedStyle(document.documentElement)
   const textMuted = styles.getPropertyValue('--text-muted').trim()
   const textPrimary = styles.getPropertyValue('--text-primary').trim()
@@ -311,6 +319,27 @@ async function refresh() {
   }
 }
 
+async function refreshVision() {
+  visionLoading.value = true
+  try {
+    visionResults.value = await fetchJson('/api/v1/vision/benchmarks/latest')
+    visionError.value = ''
+    await nextTick()
+    renderVisionChart()
+  } catch {
+    visionResults.value = null
+    visionError.value = 'No benchmark is available from the backend. Run the frame-sampling benchmark to publish one.'
+    benchmarkChart?.dispose()
+    benchmarkChart = null
+  } finally {
+    visionLoading.value = false
+  }
+}
+
+async function refreshAll() {
+  await Promise.all([refresh(), refreshVision()])
+}
+
 async function chooseDevice(event) {
   selectedDevice.value = event.target.value
   history.value = []
@@ -324,14 +353,15 @@ function resizeChart() {
 
 onMounted(async () => {
   await nextTick()
-  renderVisionChart()
-  refresh()
+  refreshAll()
   pollTimer = window.setInterval(refresh, 2000)
+  visionPollTimer = window.setInterval(refreshVision, 10000)
   window.addEventListener('resize', resizeChart)
 })
 
 onBeforeUnmount(() => {
   window.clearInterval(pollTimer)
+  window.clearInterval(visionPollTimer)
   window.removeEventListener('resize', resizeChart)
   chart?.dispose()
   benchmarkChart?.dispose()
@@ -354,7 +384,7 @@ onBeforeUnmount(() => {
             <option v-for="device in devices" :key="device.deviceId" :value="device.deviceId">{{ device.deviceId }}</option>
           </select>
         </label>
-        <button class="icon-button" type="button" aria-label="Refresh telemetry" @click="refresh">
+        <button class="icon-button" type="button" aria-label="Refresh telemetry and vision results" @click="refreshAll">
           <RefreshCw :size="18" :class="{ spinning: loading }" />
         </button>
       </div>
@@ -463,53 +493,58 @@ onBeforeUnmount(() => {
         <div>
           <div class="eyebrow-row">
             <span class="status-dot" aria-hidden="true"></span>
-            <span>Measured benchmark</span>
+            <span>{{ visionResults ? 'Backend benchmark record' : 'Vision results unavailable' }}</span>
           </div>
           <h2 id="vision-heading">Vision frame-sampling study</h2>
-          <p>YOLO inference on a fixed 20-second hiking clip in a CPU-only Docker environment.</p>
+          <p>Persisted results from YOLO inference on a fixed 20-second hiking clip.</p>
         </div>
         <a class="map-link" href="https://github.com/Kettkk/smart-helmet-aiot/blob/main/docs/vision-demo.md" target="_blank" rel="noreferrer">
           Method and raw results <ExternalLink :size="13" />
         </a>
       </div>
 
-      <div class="vision-summary" aria-label="Selected vision operating point">
-        <div><span>Operating point</span><strong>Stride {{ operatingPoint.frameStride }}</strong></div>
-        <div><span>Sampling rate</span><strong>{{ operatingPoint.samplingFps.toFixed(1) }} FPS</strong></div>
-        <div><span>Mean inference</span><strong>{{ operatingPoint.meanLatencyMs.toFixed(1) }} ms</strong></div>
-        <div><span>p95 inference</span><strong>{{ operatingPoint.p95LatencyMs.toFixed(1) }} ms</strong></div>
-        <div><span>Pipeline throughput</span><strong>{{ operatingPoint.pipelineFps.toFixed(1) }} FPS</strong></div>
-      </div>
+      <div v-if="visionLoading && !visionResults" class="empty-state">Loading the latest persisted benchmark…</div>
+      <div v-else-if="visionError" class="empty-state">{{ visionError }}</div>
 
-      <div class="vision-content">
-        <div>
-          <div ref="visionChart" class="vision-chart" role="img" aria-label="Pipeline throughput by effective sampling rate"></div>
-          <p class="chart-note">Lower sampling frequency reduces total work; inference latency per processed frame remains near 106–109 ms.</p>
+      <template v-else-if="visionResults && operatingPoint">
+        <div class="vision-summary" aria-label="Selected vision operating point">
+          <div><span>Operating point</span><strong>Stride {{ operatingPoint.frameStride }}</strong></div>
+          <div><span>Sampling rate</span><strong>{{ operatingPoint.samplingFps.toFixed(1) }} FPS</strong></div>
+          <div><span>Mean inference</span><strong>{{ operatingPoint.meanLatencyMs.toFixed(1) }} ms</strong></div>
+          <div><span>p95 inference</span><strong>{{ operatingPoint.p95LatencyMs.toFixed(1) }} ms</strong></div>
+          <div><span>Pipeline throughput</span><strong>{{ operatingPoint.pipelineFps.toFixed(1) }} FPS</strong></div>
         </div>
-        <div class="table-scroll vision-table-scroll">
-          <table class="vision-table">
-            <thead><tr><th>Stride</th><th>Sampled FPS</th><th>Frames</th><th>Mean</th><th>p95</th><th>Pipeline</th></tr></thead>
-            <tbody>
-              <tr v-for="run in visionRuns" :key="run.frameStride" :class="{ 'is-operating-point': run.frameStride === visionResults.operatingPointStride }">
-                <td>{{ run.frameStride }}<span v-if="run.frameStride === visionResults.operatingPointStride" class="table-badge">Selected</span></td>
-                <td>{{ run.samplingFps.toFixed(1) }}</td>
-                <td>{{ run.processedFrames }}</td>
-                <td>{{ run.meanLatencyMs.toFixed(1) }} ms</td>
-                <td>{{ run.p95LatencyMs.toFixed(1) }} ms</td>
-                <td>{{ run.pipelineFps.toFixed(1) }} FPS</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
 
-      <div class="benchmark-meta">
-        <span>{{ visionResults.configuration.model }}</span>
-        <span>{{ visionResults.configuration.device }}</span>
-        <span>{{ visionResults.configuration.imageSize }} px input</span>
-        <span>Confidence {{ visionResults.configuration.confidence }}</span>
-        <span>{{ visionResults.input.resolution }} source</span>
-      </div>
+        <div class="vision-content">
+          <div>
+            <div ref="visionChart" class="vision-chart" role="img" aria-label="Pipeline throughput by effective sampling rate"></div>
+            <p class="chart-note">Lower sampling frequency reduces total work. Values are loaded from the backend, not bundled into the frontend.</p>
+          </div>
+          <div class="table-scroll vision-table-scroll">
+            <table class="vision-table">
+              <thead><tr><th>Stride</th><th>Sampled FPS</th><th>Frames</th><th>Mean</th><th>p95</th><th>Pipeline</th></tr></thead>
+              <tbody>
+                <tr v-for="run in visionRuns" :key="run.frameStride" :class="{ 'is-operating-point': run.frameStride === visionResults.operatingPointStride }">
+                  <td>{{ run.frameStride }}<span v-if="run.frameStride === visionResults.operatingPointStride" class="table-badge">Selected</span></td>
+                  <td>{{ run.samplingFps.toFixed(1) }}</td>
+                  <td>{{ run.processedFrames }}</td>
+                  <td>{{ run.meanLatencyMs.toFixed(1) }} ms</td>
+                  <td>{{ run.p95LatencyMs.toFixed(1) }} ms</td>
+                  <td>{{ run.pipelineFps.toFixed(1) }} FPS</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="benchmark-meta">
+          <span>{{ visionResults.configuration.model }}</span>
+          <span>{{ visionResults.configuration.device }}</span>
+          <span>{{ visionResults.configuration.imageSize }} px input</span>
+          <span>Confidence {{ visionResults.configuration.confidence }}</span>
+          <span>{{ visionResults.input.resolution }} source</span>
+        </div>
+      </template>
     </section>
 
     <footer>

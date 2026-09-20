@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "created_at": "2026-09-18T09:05:23.018466+00:00",
+  "created_at": "2026-09-20T06:31:30.441219+00:00",
   "input": {
     "file": "outdoor-hiking-20s.mp4",
     "width": 1280,
@@ -24,18 +24,18 @@
   },
   "performance": {
     "processed_frames": 600,
-    "processing_wall_time_s": 68.802,
-    "pipeline_fps": 8.721,
-    "inference_fps": 9.458,
-    "mean_inference_latency_ms": 105.726,
-    "p50_inference_latency_ms": 104.948,
-    "p95_inference_latency_ms": 111.703
+    "processing_wall_time_s": 79.017,
+    "pipeline_fps": 7.593,
+    "inference_fps": 8.065,
+    "mean_inference_latency_ms": 123.999,
+    "p50_inference_latency_ms": 107.106,
+    "p95_inference_latency_ms": 317.425
   },
   "detections": {
-    "sampled_frames_with_detections": 600,
-    "sampled_frame_detection_rate": 1.0,
+    "sampled_frames_with_detections": 597,
+    "sampled_frame_detection_rate": 0.995,
     "count_by_class": {
-      "person": 619
+      "person": 3354
     }
   },
   "artifacts": {

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "measurementTimestamp": "2026-09-18T09:06:51.408883+00:00",
+  "measurementTimestamp": "2026-09-20T06:32:49.306522+00:00",
   "input": {
     "file": "outdoor-hiking-20s.mp4",
     "durationSeconds": 20.0,
@@ -22,37 +22,37 @@
       "frameStride": 1,
       "samplingFps": 30.0,
       "processedFrames": 600,
-      "meanLatencyMs": 105.726,
-      "p95LatencyMs": 111.703,
-      "pipelineFps": 8.721,
-      "detectionRate": 1.0
+      "meanLatencyMs": 123.999,
+      "p95LatencyMs": 317.425,
+      "pipelineFps": 7.593,
+      "continuityRate": 0.995
     },
     {
       "frameStride": 2,
       "samplingFps": 15.0,
       "processedFrames": 300,
-      "meanLatencyMs": 108.565,
-      "p95LatencyMs": 114.772,
-      "pipelineFps": 15.781,
-      "detectionRate": 1.0
+      "meanLatencyMs": 109.745,
+      "p95LatencyMs": 116.368,
+      "pipelineFps": 16.083,
+      "continuityRate": 0.993333
     },
     {
       "frameStride": 5,
       "samplingFps": 6.0,
       "processedFrames": 120,
-      "meanLatencyMs": 105.57,
-      "p95LatencyMs": 108.214,
-      "pipelineFps": 33.508,
-      "detectionRate": 1.0
+      "meanLatencyMs": 108.466,
+      "p95LatencyMs": 114.884,
+      "pipelineFps": 34.562,
+      "continuityRate": 0.991667
     },
     {
       "frameStride": 10,
       "samplingFps": 3.0,
       "processedFrames": 60,
-      "meanLatencyMs": 107.518,
-      "p95LatencyMs": 110.87,
-      "pipelineFps": 51.498,
-      "detectionRate": 1.0
+      "meanLatencyMs": 110.137,
+      "p95LatencyMs": 114.677,
+      "pipelineFps": 55.35,
+      "continuityRate": 0.983333
     }
   ]
 }

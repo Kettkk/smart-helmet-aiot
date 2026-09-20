@@ -6,6 +6,10 @@ port `18883`, so it does not interrupt the normal local stack on port `1883`.
 
 ## Research questions
 
+These are reliability and latency subquestions of the repository's single
+research scope; they do not introduce an accuracy, energy, or deployment-cost
+study.
+
 1. How does added one-way delay affect end-to-end MQTT message latency?
 2. How does controlled upstream message loss affect delivery rate?
 3. How quickly do MQTT clients reconnect, restore their subscription, and

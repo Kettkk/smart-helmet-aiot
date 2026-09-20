@@ -4,11 +4,7 @@ set -eu
 input="data/samples/outdoor-hiking-20s.mp4"
 output="experiments/results/frame-sampling"
 
-if [ ! -f "$input" ]; then
-  printf 'Missing local video sample: %s\n' "$input" >&2
-  printf 'See data/samples/README.md for provenance and preparation.\n' >&2
-  exit 1
-fi
+./scripts/download-video-sample.sh
 
 mkdir -p "$output"
 
@@ -25,3 +21,10 @@ docker compose run --rm --entrypoint python vision-service \
   --warmup-runs 1
 
 printf 'Frame-sampling benchmark complete: %s\n' "$output"
+
+if [ "${VISION_PUBLISH_RESULTS:-true}" = "true" ]; then
+  ./scripts/publish-vision-results.sh
+else
+  python3 experiments/export_dashboard_results.py
+  printf 'Prepared backend payload without publishing it.\n'
+fi
