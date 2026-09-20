@@ -30,6 +30,18 @@ jobs:
         run: mvn --batch-mode --file backend/pom.xml test
       - name: Check simulator syntax
         run: python -m py_compile simulator/telemetry_simulator.py
+      - name: Verify hardware archive
+        run: |
+          test -s firmware/esp8266-telemetry/esp8266_telemetry.ino
+          test -s firmware/esp8266-telemetry/config.example.h
+          test -s firmware/esp32-camera/CameraWebServer.ino
+          test -s firmware/esp32-camera/config.example.h
+          test -s docs/hardware/helmet-front.jpg
+          test -s docs/hardware/field-test.jpg
+          test ! -e firmware/esp8266-telemetry/config.h
+          test ! -e firmware/esp32-camera/config.h
+          grep -q '#include "config.h"' firmware/esp8266-telemetry/esp8266_telemetry.ino
+          grep -q '#include "config.h"' firmware/esp32-camera/CameraWebServer.ino
       - name: Test fixed-video pipeline
         run: |
           python -m pip install --requirement vision-service/requirements-dev.txt

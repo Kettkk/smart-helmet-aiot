@@ -5,6 +5,20 @@ reproducible evaluation path. The evaluation path will run from simulated
 telemetry and a fixed video sample, allowing reviewers to repeat latency and
 throughput measurements without an ESP device or cloud account.
 
+## Physical prototype path
+
+```text
+Sensors -> STM32 acquisition board -> 31-byte UART frame -> ESP8266
+                                                        -> MQTT/TLS -> Huawei IoTDA
+
+ESP32-CAM -> HTTP JPEG/MJPEG stream -> server-side visual processing
+```
+
+The ESP8266 and ESP32-CAM integrations are archived in `firmware/`. The STM32
+firmware was developed outside this portfolio and is represented only as the
+upstream producer of the documented UART frame. Photographs and the ownership
+boundary are recorded in `docs/hardware-prototype.md`.
+
 ## Implemented local telemetry path
 
 The first executable slice is intentionally narrow:
@@ -19,9 +33,9 @@ can start from a controlled workload. Cloud adapters and physical-device
 adapters will remain outside this core path and map into the same telemetry
 contract.
 
-## Planned measurements
+## Implemented measurements
 
-- Telemetry ingestion latency (median and p95)
 - Vision inference throughput and per-frame latency
-- Delivery success under simulated packet loss or reconnects
-- Accuracy-latency trade-off at different frame-sampling rates
+- MQTT delivery success under controlled loss
+- MQTT reconnect and first-message recovery after broker outages
+- Latency-throughput trade-off at different frame-sampling rates

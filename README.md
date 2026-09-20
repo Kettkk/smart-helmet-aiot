@@ -16,8 +16,9 @@ Outdoor Information Monitoring and Recognition System Based on a Smart Helmet*,
 as a research-oriented and reproducible system. The original prototype combined
 wearable sensing, cloud messaging, server-side object detection, data storage,
 and web and Android clients. This repository is the clean public version: it
-contains no production credentials, personal data, or environment-specific
-deployment configuration.
+contains no production credentials or environment-specific deployment
+configuration. Prototype photographs are published with the participants'
+permission.
 
 > **Current status:** the credential-free telemetry and fixed-video loops are ready.
 > A deterministic simulator publishes MQTT telemetry, the Spring Boot service
@@ -27,7 +28,9 @@ deployment configuration.
 > YOLO batch pipeline now processes a licensed 20-second hiking sample and emits
 > an annotated video, structured detections, and latency/FPS measurements. A
 > separate MQTT benchmark measures delay, controlled loss, and recovery from
-> real broker outages. The mobile client remains reconstruction work.
+> real broker outages. Archived ESP8266 and ESP32-CAM firmware plus physical
+> prototype evidence document the original wearable implementation. The mobile
+> client remains reconstruction work.
 
 ## Research motivation
 
@@ -81,6 +84,22 @@ The public evaluation path will support simulators and fixed video inputs so
 that the complete pipeline can be reproduced without physical hardware or a
 commercial cloud account.
 
+## Physical wearable prototype
+
+![Physical smart-helmet prototype with ESP32-CAM and sensors](docs/hardware/helmet-front.jpg)
+
+The original proof of concept integrated an AI-Thinker ESP32-CAM, an ESP8266
+telemetry bridge, positioning hardware, and multiple sensor inputs on a wearable
+helmet. The ESP8266 received a 31-byte UART frame from an STM32 acquisition
+board and reported selected measurements to Huawei Cloud IoTDA; the ESP32-CAM
+provided a separate Wi-Fi image stream. The STM32 firmware was developed
+outside my contribution and is not included or claimed here.
+
+See [the physical prototype record](docs/hardware-prototype.md) for front and
+rear hardware views, an outdoor field-test photograph, the data path,
+contribution boundaries, and limitations. Inspect the archived, configurable
+firmware in [`firmware/`](firmware/).
+
 ## Prototype capabilities
 
 The working-directory audit found the following implemented components in the
@@ -88,6 +107,8 @@ graduation prototype:
 
 | Component | Verified implementation | Public reconstruction status |
 |---|---|---|
+| Wearable telemetry node | STM32 sensor frame connected to an ESP8266 UART-to-MQTT bridge | Archived ESP8266 source and configuration template published |
+| Camera node | AI-Thinker ESP32-CAM with HTTP capture and MJPEG streaming | Archived camera-node source and prototype photographs published |
 | Telemetry ingestion | Huawei Cloud IoTDA integration through AMQP and device-shadow polling | Local MQTT consumer and synthetic publisher implemented |
 | Application backend | Java 17, Spring Boot 3, MyBatis, MySQL, REST endpoints | Clean Spring Boot REST API implemented |
 | Sensor state storage | Insert/update logic for per-device status records | MySQL schema and Flyway migration implemented |
@@ -103,6 +124,11 @@ body pressure, and movement speed.
 
 - Designed the end-to-end data path from sensing and camera nodes to cloud
   services and monitoring clients.
+- Implemented the ESP8266 boundary that parses the STM32 UART frame and reports
+  service properties to Huawei Cloud IoTDA. The upstream STM32 firmware was not
+  my work.
+- Integrated and configured the ESP32-CAM image-streaming node using the
+  Espressif CameraWebServer foundation.
 - Implemented the Spring Boot and MyBatis application backend for device,
   status, and user data.
 - Integrated cloud IoT messages and device-shadow data into the application
@@ -171,7 +197,7 @@ smart-helmet-aiot/
 ├── data/               # Small, non-sensitive sample inputs
 ├── docs/               # Architecture, decisions, limitations, and demo
 ├── experiments/        # Benchmarks, raw results, and plots
-├── firmware/           # Optional ESP8266 and ESP32-CAM integration
+├── firmware/           # Archived ESP8266 and ESP32-CAM integrations
 ├── infrastructure/     # Local broker configuration
 ├── scripts/            # Repeatable smoke-test commands
 ├── simulator/          # Hardware-independent telemetry and network simulation
@@ -260,6 +286,7 @@ protocol and interpretation.
 
 - [x] Create a credential-free public repository and research framing
 - [x] Document the architecture, verified prototype scope, and limitations
+- [x] Publish physical-prototype evidence and attributed firmware
 - [x] Migrate and refactor the Spring Boot backend
 - [x] Add a portable database schema and synthetic telemetry generator
 - [x] Add a locally reproducible vision service and fixed video sample
@@ -274,6 +301,9 @@ protocol and interpretation.
 
 - The original prototype depended on physical devices and managed cloud
   services, so it was not independently reproducible.
+- The STM32 acquisition firmware was developed outside this portfolio and is
+  not included. The public ESP8266 code documents the UART boundary rather than
+  claiming the complete sensor acquisition stack.
 - The inspected client code contains environment-specific endpoints that will
   be replaced with runtime configuration during migration.
 - The original Android prototype accesses application data too directly; the
@@ -286,10 +316,12 @@ protocol and interpretation.
 
 ## Security and privacy
 
-Secrets are supplied through local environment variables and are excluded from
-version control. Public samples must be synthetic or anonymised, particularly
-for location and physiological measurements. See [SECURITY.md](SECURITY.md) for
-the disclosure policy and [.env.example](.env.example) for safe configuration.
+Secrets are supplied through local configuration files or environment variables
+and are excluded from version control. Public samples must be synthetic or
+anonymised, particularly for location and physiological measurements. The
+prototype photographs are included with permission from the people shown. See
+[SECURITY.md](SECURITY.md) for the disclosure policy and
+[.env.example](.env.example) for safe configuration.
 
 ## Technology stack
 

@@ -8,6 +8,7 @@
 *.keystore
 **/application-local.properties
 **/application-prod.properties
+firmware/**/config.h
 
 # Build output and dependencies
 **/target/
