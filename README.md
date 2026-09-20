@@ -25,8 +25,9 @@ deployment configuration.
 > samples. A live Vue dashboard visualises the resulting state and the measured
 > vision benchmark. A reproducible
 > YOLO batch pipeline now processes a licensed 20-second hiking sample and emits
-> an annotated video, structured detections, and latency/FPS measurements. The
-> mobile client remains reconstruction work.
+> an annotated video, structured detections, and latency/FPS measurements. A
+> separate MQTT benchmark measures delay, controlled loss, and recovery from
+> real broker outages. The mobile client remains reconstruction work.
 
 ## Research motivation
 
@@ -111,10 +112,10 @@ body pressure, and movement speed.
 - Defined the portfolio reconstruction and evaluation plan for latency,
   throughput, and reliability experiments.
 
-## Evaluation plan
+## Evaluation
 
-The public version will report measurements rather than only screenshots or
-feature demonstrations.
+The public version reports measurements rather than only screenshots or feature
+demonstrations.
 
 | Experiment | Controlled variables | Reported metrics |
 |---|---|---|
@@ -140,6 +141,25 @@ source faster than real time on the measured machine.
 These are system measurements on one unlabelled clip, not model-accuracy
 claims. See [docs/vision-demo.md](docs/vision-demo.md) for all four figures,
 the experiment environment, limitations, and links to raw results.
+
+### Measured network-reliability result
+
+The MQTT benchmark evaluated five added-delay levels, six controlled-loss
+levels, and 1/3/5-second broker outages. Every condition was repeated three
+times with QoS 1 and a fixed random seed. Mean latency rose from 2.743 ms at the
+local baseline to 207.906 ms with 200 ms added delay. All published messages
+were delivered; the end-to-end delivery rate declined according to the seeded
+pre-publish impairment. After broker restart, reconnect plus subscription
+recovery averaged 776–794 ms, and all nine recovery probes were delivered.
+
+![MQTT delivery rate under controlled loss](experiments/plots/network/delivery_rate_vs_packet_loss.png)
+
+![MQTT recovery after broker outages](experiments/plots/network/reconnect_time_vs_outage.png)
+
+See [docs/network-reliability.md](docs/network-reliability.md) for the full
+method, latency figure, observed tables, raw CSV links, and limitations. The
+loss model is deliberately described as an application-layer impairment, not a
+claim about physical wireless packet loss.
 
 ## Repository structure
 
@@ -216,6 +236,17 @@ summary to `experiments/results/vision-demo/`. See
 [docs/vision-demo.md](docs/vision-demo.md) for the measured baseline and its
 interpretation.
 
+Run the isolated MQTT reliability benchmark and regenerate all network figures:
+
+```bash
+./scripts/run-network-experiments.sh
+```
+
+This starts a temporary Mosquitto container on port `18883`; it does not stop
+the normal local stack. See
+[docs/network-reliability.md](docs/network-reliability.md) for the experimental
+protocol and interpretation.
+
 ## Local API
 
 | Method | Endpoint | Purpose |
@@ -234,9 +265,9 @@ interpretation.
 - [x] Add a locally reproducible vision service and fixed video sample
 - [x] Connect the web dashboard to the local REST API
 - [x] Package the telemetry pipeline and dashboard with Docker Compose
-- [ ] Add WebSocket push updates and reconnect measurements
+- [ ] Add WebSocket push updates
 - [x] Add backend integration tests and continuous integration
-- [ ] Run latency, throughput, and network-reliability experiments
+- [x] Run latency, throughput, and network-reliability experiments
 - [ ] Publish an anonymised dataset, plots, and a short technical report
 
 ## Limitations
